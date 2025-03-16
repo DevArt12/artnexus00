@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Camera, Cube, RotateCcw, ZoomIn, ZoomOut, Home } from 'lucide-react';
+import { Camera, Box, RotateCcw, ZoomIn, ZoomOut, Home } from 'lucide-react';
 
 const ARView = () => {
   const { id } = useParams<{ id: string }>();
@@ -137,7 +137,7 @@ const ARView = () => {
                         AR View
                       </TabsTrigger>
                       <TabsTrigger value="3d" className="flex-1">
-                        <Cube className="h-4 w-4 mr-2" />
+                        <Box className="h-4 w-4 mr-2" />
                         3D View
                       </TabsTrigger>
                     </TabsList>
@@ -161,7 +161,7 @@ const ARView = () => {
                         Explore this artwork in 3D from all angles.
                       </p>
                       <Button className="w-full" variant="outline">
-                        <Cube className="h-4 w-4 mr-2" />
+                        <Box className="h-4 w-4 mr-2" />
                         View in 3D
                       </Button>
                     </TabsContent>
