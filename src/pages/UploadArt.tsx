@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { UploadCloud, Image, X } from 'lucide-react';
+import { UploadCloud, Image, X, AlertTriangle } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 const UploadArt = () => {
@@ -25,10 +25,35 @@ const UploadArt = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  
+  // Check if user is authenticated on component mount
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error('You must be logged in to upload artwork');
+        navigate('/auth');
+        return;
+      }
+      
+      setUser(user);
+    };
+    
+    checkUser();
+  }, [navigate]);
   
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      
+      // Check file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('File is too large. Maximum size is 10MB.');
+        return;
+      }
+      
       setImageFile(file);
       
       // Create a preview
@@ -48,6 +73,12 @@ const UploadArt = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      toast.error('You must be logged in to upload artwork');
+      navigate('/auth');
+      return;
+    }
+    
     if (!imageFile) {
       toast.error('Please select an image');
       return;
@@ -56,24 +87,19 @@ const UploadArt = () => {
     try {
       setLoading(true);
       
-      // Check if user is authenticated
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast.error('You must be logged in to upload artwork');
-        navigate('/auth');
-        return;
-      }
-      
       // 1. Upload image to storage
       const fileExt = imageFile.name.split('.').pop();
-      const filePath = `${user.id}/${uuidv4()}.${fileExt}`;
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('artworks')
         .upload(filePath, imageFile);
       
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
       
       // Get the public URL for the uploaded file
       const { data: { publicUrl } } = supabase.storage
@@ -96,7 +122,10 @@ const UploadArt = () => {
         .select('id')
         .single();
       
-      if (artworkError) throw artworkError;
+      if (artworkError) {
+        console.error('Artwork creation error:', artworkError);
+        throw artworkError;
+      }
       
       // 3. Create marketplace item
       const { error: marketplaceError } = await supabase
@@ -108,7 +137,10 @@ const UploadArt = () => {
           status: 'available',
         });
       
-      if (marketplaceError) throw marketplaceError;
+      if (marketplaceError) {
+        console.error('Marketplace item creation error:', marketplaceError);
+        throw marketplaceError;
+      }
       
       toast.success('Artwork uploaded successfully!');
       navigate('/marketplace');
@@ -203,7 +235,7 @@ const UploadArt = () => {
                         value={price}
                         onChange={(e) => setPrice(e.target.value)}
                         placeholder="Enter price"
-                        min="0"
+                        min="1"
                         step="0.01"
                         required
                       />
@@ -254,6 +286,7 @@ const UploadArt = () => {
                       className="w-full h-80 object-contain rounded-md mb-4"
                     />
                     <button
+                      type="button"
                       onClick={clearImageSelection}
                       className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
                     >
@@ -289,12 +322,12 @@ const UploadArt = () => {
               </CardContent>
               
               <CardFooter className="flex-col space-y-2">
-                <p className="text-sm text-gray-500">
-                  Your artwork will be displayed in the marketplace and available for AR view.
-                </p>
-                <p className="text-sm text-gray-500">
-                  High-quality images work best for AR experiences.
-                </p>
+                <div className="flex items-start space-x-2 text-amber-500 p-2 bg-amber-50 dark:bg-amber-900/20 rounded">
+                  <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm">
+                    Your artwork will be displayed in the marketplace and available for AR view. High-quality images work best for AR experiences.
+                  </p>
+                </div>
               </CardFooter>
             </Card>
           </div>

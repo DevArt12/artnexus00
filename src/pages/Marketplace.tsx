@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Search, Filter, ChevronRight, Upload, Camera3d, LogIn, ShoppingCart } from 'lucide-react';
+import { Search, Filter, Camera3d, LogIn, ShoppingCart, View3d } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Marketplace = () => {
@@ -33,6 +33,17 @@ const Marketplace = () => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+      
+      // If user is logged in, fetch cart items from database
+      if (user) {
+        fetchCartItems(user.id);
+      } else {
+        // Get cart items from local storage
+        const storedCart = localStorage.getItem('cart');
+        if (storedCart) {
+          setCartItems(JSON.parse(storedCart));
+        }
+      }
     };
     
     checkUser();
@@ -41,19 +52,41 @@ const Marketplace = () => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user || null);
+        
+        // When auth state changes, update cart accordingly
+        if (session?.user) {
+          fetchCartItems(session.user.id);
+        } else {
+          // Get cart items from local storage when logged out
+          const storedCart = localStorage.getItem('cart');
+          if (storedCart) {
+            setCartItems(JSON.parse(storedCart));
+          }
+        }
       }
     );
-    
-    // Get cart items from local storage
-    const storedCart = localStorage.getItem('cart');
-    if (storedCart) {
-      setCartItems(JSON.parse(storedCart));
-    }
     
     return () => {
       authListener?.subscription.unsubscribe();
     };
   }, []);
+  
+  // Fetch cart items from database
+  const fetchCartItems = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('cart_items')
+        .select('marketplace_item_id')
+        .eq('user_id', userId);
+        
+      if (error) throw error;
+      
+      const itemIds = data.map(item => item.marketplace_item_id);
+      setCartItems(itemIds);
+    } catch (err) {
+      console.error('Error fetching cart items:', err);
+    }
+  };
   
   // Fetch marketplace items
   const { data: marketplace, isLoading, error } = useQuery({
@@ -84,23 +117,46 @@ const Marketplace = () => {
     }
   });
   
-  const handleBuy = (itemId: string) => {
+  const handleBuy = async (itemId: string) => {
     if (!user) {
       toast.error("Please sign in to add items to your cart");
+      navigate('/auth');
       return;
     }
     
-    // Add item to cart
-    const updatedCart = [...cartItems, itemId];
-    setCartItems(updatedCart);
-    
-    // Save to local storage
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
-    
-    toast({
-      title: "Item Added to Cart",
-      description: "The artwork has been added to your cart successfully.",
-    });
+    try {
+      // Check if item is already in cart
+      if (cartItems.includes(itemId)) {
+        toast.info("This item is already in your cart");
+        return;
+      }
+      
+      // Add item to database cart if logged in
+      const { error } = await supabase
+        .from('cart_items')
+        .insert({
+          user_id: user.id,
+          marketplace_item_id: itemId,
+          quantity: 1
+        });
+        
+      if (error) throw error;
+      
+      // Update local state
+      const updatedCart = [...cartItems, itemId];
+      setCartItems(updatedCart);
+      
+      // Save to local storage as backup
+      localStorage.setItem('cart', JSON.stringify(updatedCart));
+      
+      toast({
+        title: "Item Added to Cart",
+        description: "The artwork has been added to your cart successfully.",
+      });
+    } catch (err: any) {
+      console.error('Error adding to cart:', err);
+      toast.error(err.message || "Failed to add item to cart");
+    }
   };
   
   const handleUploadClick = () => {
@@ -113,13 +169,17 @@ const Marketplace = () => {
     navigate('/upload-art');
   };
   
+  const handleViewInAR = (artworkId: string) => {
+    navigate(`/ar-view/${artworkId}`);
+  };
+  
   // Filter and sort marketplace items
   const filteredItems = marketplace?.filter(item => {
     // Filter by search
     const matchesSearch = searchQuery === '' || 
       item.artworks.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.artworks.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.artworks.artists.name.toLowerCase().includes(searchQuery.toLowerCase());
+      (item.artworks.artists?.name && item.artworks.artists.name.toLowerCase().includes(searchQuery.toLowerCase()));
     
     // Filter by category
     const matchesCategory = selectedCategory === 'all' || 
@@ -297,7 +357,7 @@ const Marketplace = () => {
                 ) : sortedItems.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {sortedItems.map((item) => (
-                      <div key={item.id} className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md">
+                      <div key={item.id} className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
                         <Link to={`/artwork/${item.artwork_id}`} className="block relative aspect-square overflow-hidden">
                           <img 
                             src={item.artworks.image} 
@@ -331,22 +391,34 @@ const Marketplace = () => {
                           
                           <div className="flex justify-between items-center mb-3">
                             <span className="font-bold text-lg">{item.price}</span>
-                            <Button 
-                              variant="outline"
-                              size="sm"
-                              onClick={() => navigate(`/ar-view/${item.artwork_id}`)}
-                              className="text-artnexus-teal"
-                            >
-                              <Camera3d className="h-4 w-4 mr-1" />
-                              View in AR
-                            </Button>
+                            <div className="flex space-x-2">
+                              <Button 
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewInAR(item.artwork_id)}
+                                className="text-artnexus-teal"
+                                title="View in AR"
+                              >
+                                <Camera3d className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/artwork/${item.artwork_id}`)}
+                                className="text-artnexus-purple"
+                                title="View Details"
+                              >
+                                <View3d className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                           
                           <Button 
                             className="w-full bg-artnexus-purple hover:bg-artnexus-purple/90"
                             onClick={() => handleBuy(item.id)}
+                            disabled={cartItems.includes(item.id)}
                           >
-                            Add to Cart
+                            {cartItems.includes(item.id) ? 'In Cart' : 'Add to Cart'}
                           </Button>
                         </div>
                       </div>
@@ -394,5 +466,25 @@ const Marketplace = () => {
     </div>
   );
 };
+
+// Define the Upload icon which was missing in the imports
+const Upload = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" />
+    <line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+);
 
 export default Marketplace;

@@ -44,6 +44,20 @@ const Auth = () => {
       if (error) throw error;
       
       toast.success('Signup successful! Check your email to confirm your account.');
+      
+      // Create profile entry
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({ 
+          id: data.user?.id,
+          username: email,
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
+        });
+      
+      if (profileError) {
+        console.error("Error creating profile:", profileError);
+      }
+      
       navigate('/marketplace');
     } catch (error: any) {
       toast.error(error.message || 'An error occurred during signup');

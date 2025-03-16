@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMobile } from '@/hooks/useMobile';
@@ -56,90 +57,90 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-      
-      <div className="flex-1 flex justify-between items-center">
-        <Link to="/" className="flex items-center space-x-2">
-          <Palette className="h-6 w-6 text-artnexus-teal" />
-          <span className="font-bold text-xl">ArtNexus</span>
-        </Link>
-        
-        {/* Desktop Navigation */}
-        {!isMobile && (
-          <nav className="hidden md:flex space-x-4">
-            <Link to="/" className="nav-link">Home</Link>
-            <Link to="/discover" className="nav-link">Discover</Link>
-            <Link to="/marketplace" className="nav-link">Marketplace</Link>
-            <Link to="/classes" className="nav-link">Classes</Link>
-            <Link to="/events" className="nav-link">Events</Link>
-            <Link to="/performances" className="nav-link">Performances</Link>
-            <Link to="/forum" className="nav-link">Community</Link>
-          </nav>
-        )}
-        
-        <div className="flex items-center space-x-4">
-          {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.user_metadata?.avatar_url || "https://github.com/shadcn.png"} alt={user.user_metadata?.full_name || "User"} />
-                    <AvatarFallback>{(user.user_metadata?.full_name || user.email || "User").substring(0, 2).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.user_metadata?.full_name || "User"}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/profile">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/upload-art">
-                    <Upload className="mr-2 h-4 w-4" />
-                    <span>Upload Art</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigate('/auth')}
-              className="hidden md:flex"
-            >
-              <LogIn className="mr-2 h-4 w-4" />
-              Sign In
-            </Button>
+        <div className="flex-1 flex justify-between items-center">
+          <Link to="/" className="flex items-center space-x-2">
+            <Palette className="h-6 w-6 text-artnexus-teal" />
+            <span className="font-bold text-xl">ArtNexus</span>
+          </Link>
+          
+          {/* Desktop Navigation */}
+          {!isMobile && (
+            <nav className="hidden md:flex space-x-4">
+              <Link to="/" className="nav-link">Home</Link>
+              <Link to="/discover" className="nav-link">Discover</Link>
+              <Link to="/marketplace" className="nav-link">Marketplace</Link>
+              <Link to="/classes" className="nav-link">Classes</Link>
+              <Link to="/events" className="nav-link">Events</Link>
+              <Link to="/performances" className="nav-link">Performances</Link>
+              <Link to="/forum" className="nav-link">Community</Link>
+            </nav>
           )}
           
-          <ThemeToggle />
-          
-          {/* Mobile menu button */}
-          <Button variant="ghost" size="sm" className="md:hidden" onClick={toggleMobileMenu}>
-            {mobileMenuOpen ? (
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clipRule="evenodd" />
-              </svg>
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.user_metadata?.avatar_url || "https://github.com/shadcn.png"} alt={user.user_metadata?.full_name || "User"} />
+                      <AvatarFallback>{(user.user_metadata?.full_name || user.email || "User").substring(0, 2).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.user_metadata?.full_name || "User"}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/upload-art">
+                      <Upload className="mr-2 h-4 w-4" />
+                      <span>Upload Art</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-              </svg>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/auth')}
+                className="hidden md:flex"
+              >
+                <LogIn className="mr-2 h-4 w-4" />
+                Sign In
+              </Button>
             )}
-          </Button>
+            
+            <ThemeToggle />
+            
+            {/* Mobile menu button */}
+            <Button variant="ghost" size="sm" className="md:hidden" onClick={toggleMobileMenu}>
+              {mobileMenuOpen ? (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                  <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
