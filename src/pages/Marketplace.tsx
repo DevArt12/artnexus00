@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
@@ -16,15 +16,46 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Search, Filter, ChevronRight } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { Search, Filter, ChevronRight, Upload, Camera3d, LogIn, ShoppingCart } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Marketplace = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [priceRange, setPriceRange] = useState([0, 5000]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  const [user, setUser] = useState<any>(null);
+  const [cartItems, setCartItems] = useState<string[]>([]);
   
+  // Check if user is logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    
+    checkUser();
+    
+    // Set up auth state listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+    
+    // Get cart items from local storage
+    const storedCart = localStorage.getItem('cart');
+    if (storedCart) {
+      setCartItems(JSON.parse(storedCart));
+    }
+    
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
+  
+  // Fetch marketplace items
   const { data: marketplace, isLoading, error } = useQuery({
     queryKey: ['marketplace-items'],
     queryFn: async () => {
@@ -54,10 +85,32 @@ const Marketplace = () => {
   });
   
   const handleBuy = (itemId: string) => {
+    if (!user) {
+      toast.error("Please sign in to add items to your cart");
+      return;
+    }
+    
+    // Add item to cart
+    const updatedCart = [...cartItems, itemId];
+    setCartItems(updatedCart);
+    
+    // Save to local storage
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    
     toast({
       title: "Item Added to Cart",
       description: "The artwork has been added to your cart successfully.",
     });
+  };
+  
+  const handleUploadClick = () => {
+    if (!user) {
+      toast.error("Please sign in to upload artwork");
+      navigate('/auth');
+      return;
+    }
+    
+    navigate('/upload-art');
   };
   
   // Filter and sort marketplace items
@@ -99,10 +152,46 @@ const Marketplace = () => {
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-2">Art Marketplace</h1>
-        <p className="text-muted-foreground mb-8">
-          Discover and collect unique artworks from talented artists worldwide
-        </p>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Art Marketplace</h1>
+            <p className="text-muted-foreground">
+              Discover and collect unique artworks from talented artists worldwide
+            </p>
+          </div>
+          
+          <div className="flex gap-3 mt-4 md:mt-0">
+            {user ? (
+              <>
+                <Button 
+                  onClick={handleUploadClick}
+                  className="bg-artnexus-purple hover:bg-artnexus-purple/90"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Art
+                </Button>
+                
+                <Button variant="outline" onClick={() => navigate('/profile')} className="relative">
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Cart
+                  {cartItems.length > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-artnexus-rose text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {cartItems.length}
+                    </span>
+                  )}
+                </Button>
+              </>
+            ) : (
+              <Button 
+                onClick={() => navigate('/auth')}
+                className="bg-artnexus-purple hover:bg-artnexus-purple/90"
+              >
+                <LogIn className="mr-2 h-4 w-4" />
+                Sign In
+              </Button>
+            )}
+          </div>
+        </div>
         
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filter sidebar */}
@@ -240,16 +329,25 @@ const Marketplace = () => {
                             </span>
                           </Link>
                           
-                          <div className="flex justify-between items-center">
+                          <div className="flex justify-between items-center mb-3">
                             <span className="font-bold text-lg">{item.price}</span>
                             <Button 
-                              size="sm" 
-                              className="bg-artnexus-purple hover:bg-artnexus-purple/90"
-                              onClick={() => handleBuy(item.id)}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/ar-view/${item.artwork_id}`)}
+                              className="text-artnexus-teal"
                             >
-                              Buy Now
+                              <Camera3d className="h-4 w-4 mr-1" />
+                              View in AR
                             </Button>
                           </div>
+                          
+                          <Button 
+                            className="w-full bg-artnexus-purple hover:bg-artnexus-purple/90"
+                            onClick={() => handleBuy(item.id)}
+                          >
+                            Add to Cart
+                          </Button>
                         </div>
                       </div>
                     ))}
