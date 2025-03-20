@@ -1,367 +1,216 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Search, MessageSquare, Users, Clock, Plus } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Search, MessageSquare, Clock, User } from 'lucide-react';
+import { forumTopics } from '@/data/communityData';
+
+// Function to format date
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-US', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  }).format(date);
+};
+
+const categoryColors: Record<string, string> = {
+  materials: 'bg-blue-500',
+  exhibitions: 'bg-purple-500',
+  digital: 'bg-green-500',
+  business: 'bg-orange-500',
+  critique: 'bg-red-500',
+  general: 'bg-gray-500',
+};
 
 const Forum = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [newTopicTitle, setNewTopicTitle] = useState('');
-  const [newTopicContent, setNewTopicContent] = useState('');
-  const [newTopicCategory, setNewTopicCategory] = useState('general');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  const { data: topics, isLoading, error, refetch } = useQuery({
-    queryKey: ['forum-topics'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('forum_topics')
-        .select(`
-          *,
-          profiles:author_id(
-            username,
-            avatar
-          )
-        `)
-        .order('created_at', { ascending: false });
-        
-      if (error) throw error;
-      return data;
-    }
-  });
-  
-  // Filter topics
-  const filteredTopics = topics?.filter(topic => {
-    // Filter by search
-    const matchesSearch = searchQuery === '' || 
-      topic.title.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Filter by category
-    const matchesCategory = selectedCategory === 'all' || 
-      topic.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
-  }) || [];
-  
-  const handleCreateTopic = async () => {
-    if (!newTopicTitle.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a topic title",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast({
-          title: "Error",
-          description: "You need to be logged in to create a topic",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      const { data, error } = await supabase
-        .from('forum_topics')
-        .insert({
-          title: newTopicTitle,
-          author_id: session.user.id,
-          category: newTopicCategory
-        })
-        .select();
-        
-      if (error) throw error;
-      
-      // Create initial post
-      if (data && data[0] && newTopicContent.trim()) {
-        const { error: postError } = await supabase
-          .from('forum_posts')
-          .insert({
-            content: newTopicContent,
-            author_id: session.user.id,
-            topic_id: data[0].id
-          });
-          
-        if (postError) throw postError;
-      }
-      
-      toast({
-        title: "Success",
-        description: "Your topic has been created successfully",
-      });
-      
-      setNewTopicTitle('');
-      setNewTopicContent('');
-      setIsDialogOpen(false);
-      refetch();
-    } catch (error) {
-      console.error('Error creating topic:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create topic. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-  
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
-  };
+  // Filter topics based on search query
+  const filteredTopics = forumTopics.filter(topic => 
+    searchQuery === '' || 
+    topic.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    topic.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    topic.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">Community Forum</h1>
             <p className="text-muted-foreground">
-              Connect, share ideas, and inspire fellow artists
+              Connect with artists, share ideas, and get feedback
             </p>
           </div>
           
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="mt-4 md:mt-0 bg-artnexus-purple hover:bg-artnexus-purple/90">
-                <Plus className="h-4 w-4 mr-2" />
-                New Topic
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Create New Topic</DialogTitle>
-                <DialogDescription>
-                  Share your thoughts, questions, or ideas with the community.
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Title</label>
-                  <Input
-                    value={newTopicTitle}
-                    onChange={(e) => setNewTopicTitle(e.target.value)}
-                    placeholder="Enter topic title"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Category</label>
-                  <Select value={newTopicCategory} onValueChange={setNewTopicCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="general">General Discussion</SelectItem>
-                      <SelectItem value="technique">Art Techniques</SelectItem>
-                      <SelectItem value="materials">Art Materials</SelectItem>
-                      <SelectItem value="critique">Artwork Critique</SelectItem>
-                      <SelectItem value="events">Events & Exhibitions</SelectItem>
-                      <SelectItem value="market">Art Market</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Content</label>
-                  <Textarea
-                    value={newTopicContent}
-                    onChange={(e) => setNewTopicContent(e.target.value)}
-                    placeholder="Share your thoughts..."
-                    rows={5}
-                  />
-                </div>
-              </div>
-              
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button 
-                  className="bg-artnexus-purple hover:bg-artnexus-purple/90" 
-                  onClick={handleCreateTopic}
-                >
-                  Create Topic
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button className="mt-4 md:mt-0 bg-artnexus-purple hover:bg-artnexus-purple/90">
+            <MessageSquare className="mr-2 h-4 w-4" />
+            New Topic
+          </Button>
         </div>
         
-        {/* Filters */}
+        {/* Search and filters */}
         <div className="mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <div className="flex flex-col md:flex-row md:items-end space-y-4 md:space-y-0 md:space-x-4">
-              <div className="flex-grow">
-                <label className="text-sm font-medium block mb-2">
-                  Search Topics
-                </label>
-                <div className="relative">
-                  <Input
-                    type="text"
-                    placeholder="Search by title or keyword..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                </div>
-              </div>
-              
-              <div className="w-full md:w-48">
-                <label className="text-sm font-medium block mb-2">
-                  Category
-                </label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="general">General Discussion</SelectItem>
-                    <SelectItem value="technique">Art Techniques</SelectItem>
-                    <SelectItem value="materials">Art Materials</SelectItem>
-                    <SelectItem value="critique">Artwork Critique</SelectItem>
-                    <SelectItem value="events">Events & Exhibitions</SelectItem>
-                    <SelectItem value="market">Art Market</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Search topics..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
           </div>
         </div>
         
-        {/* Topics list */}
-        <Tabs defaultValue="recent">
+        {/* Forum categories */}
+        <Tabs defaultValue="all">
           <TabsList className="mb-6">
-            <TabsTrigger value="recent">Recent Topics</TabsTrigger>
-            <TabsTrigger value="popular">Popular</TabsTrigger>
-            <TabsTrigger value="unanswered">Unanswered</TabsTrigger>
+            <TabsTrigger value="all">All Topics</TabsTrigger>
+            <TabsTrigger value="materials">Materials</TabsTrigger>
+            <TabsTrigger value="digital">Digital Art</TabsTrigger>
+            <TabsTrigger value="business">Business</TabsTrigger>
+            <TabsTrigger value="critique">Critique</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="recent" className="animate-fade-in">
-            {isLoading ? (
-              <div className="text-center py-12">
-                <p>Loading topics...</p>
-              </div>
-            ) : error ? (
-              <div className="text-center py-12">
-                <p className="text-red-500">Error loading topics. Please try again.</p>
-              </div>
-            ) : filteredTopics.length > 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-muted">
-                      <tr>
-                        <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Topic</th>
-                        <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider w-32">Category</th>
-                        <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider w-24">Replies</th>
-                        <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider w-32">Last Post</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-muted">
-                      {filteredTopics.map((topic) => (
-                        <tr key={topic.id} className="hover:bg-muted/50">
-                          <td className="px-6 py-4">
-                            <Link 
-                              to={`/forum/topic/${topic.id}`}
-                              className="flex items-start space-x-3"
-                            >
-                              <img 
-                                src={topic.profiles?.avatar || "https://via.placeholder.com/150"} 
-                                alt="Author" 
-                                className="w-10 h-10 rounded-full flex-shrink-0"
-                              />
-                              <div>
-                                <h3 className="font-medium hover:text-artnexus-purple transition-colors">
-                                  {topic.title}
-                                </h3>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  by {topic.profiles?.username || "Unknown"} • {formatDate(topic.created_at)}
-                                </p>
-                              </div>
-                            </Link>
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <span className="inline-block bg-muted px-2 py-1 text-xs rounded-full">
+          <TabsContent value="all" className="space-y-4">
+            {filteredTopics.length > 0 ? (
+              filteredTopics.map((topic) => (
+                <Link key={topic.id} to={`/forum/topic/${topic.id}`}>
+                  <Card className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <div className="hidden sm:block">
+                          <div className="w-12 h-12 rounded-full overflow-hidden">
+                            <img 
+                              src={topic.author.avatar} 
+                              alt={topic.author.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge className={`${categoryColors[topic.category] || 'bg-gray-500'}`}>
                               {topic.category}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground flex items-center">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {formatDate(topic.created_at)}
                             </span>
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <div className="flex justify-center items-center text-muted-foreground">
-                              <MessageSquare className="h-4 w-4 mr-1" />
-                              <span>{topic.reply_count}</span>
+                          </div>
+                          
+                          <h3 className="font-bold text-lg mb-2">{topic.title}</h3>
+                          
+                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                            {topic.excerpt}
+                          </p>
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center text-sm">
+                              <User className="h-4 w-4 mr-1 text-muted-foreground" />
+                              <span>{topic.author.name}</span>
                             </div>
-                          </td>
-                          <td className="px-6 py-4 text-center text-xs text-muted-foreground">
-                            {formatDate(topic.updated_at)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                            
+                            <div className="flex items-center">
+                              <MessageSquare className="h-4 w-4 mr-1 text-muted-foreground" />
+                              <span className="text-sm">{topic.reply_count} replies</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))
             ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">No topics found matching your criteria</p>
-                <Button onClick={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('all');
-                }}>
-                  Clear Filters
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">No topics found matching your search</p>
+                <Button onClick={() => setSearchQuery('')} variant="outline">
+                  Clear Search
                 </Button>
               </div>
             )}
           </TabsContent>
           
-          <TabsContent value="popular" className="animate-fade-in">
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading popular topics...</p>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="unanswered" className="animate-fade-in">
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading unanswered topics...</p>
-            </div>
-          </TabsContent>
+          {/* Filter topics by category */}
+          {['materials', 'digital', 'business', 'critique'].map((category) => (
+            <TabsContent key={category} value={category} className="space-y-4">
+              {filteredTopics
+                .filter(topic => topic.category === category)
+                .map((topic) => (
+                  <Link key={topic.id} to={`/forum/topic/${topic.id}`}>
+                    <Card className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className="hidden sm:block">
+                            <div className="w-12 h-12 rounded-full overflow-hidden">
+                              <img 
+                                src={topic.author.avatar} 
+                                alt={topic.author.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge className={`${categoryColors[topic.category] || 'bg-gray-500'}`}>
+                                {topic.category}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground flex items-center">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {formatDate(topic.created_at)}
+                              </span>
+                            </div>
+                            
+                            <h3 className="font-bold text-lg mb-2">{topic.title}</h3>
+                            
+                            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                              {topic.excerpt}
+                            </p>
+                            
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center text-sm">
+                                <User className="h-4 w-4 mr-1 text-muted-foreground" />
+                                <span>{topic.author.name}</span>
+                              </div>
+                              
+                              <div className="flex items-center">
+                                <MessageSquare className="h-4 w-4 mr-1 text-muted-foreground" />
+                                <span className="text-sm">{topic.reply_count} replies</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              
+              {filteredTopics.filter(topic => topic.category === category).length === 0 && (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">
+                    No topics found in this category
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+          ))}
         </Tabs>
       </div>
       

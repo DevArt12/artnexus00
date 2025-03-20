@@ -17,13 +17,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, Clock, UserCircle, BookOpen } from 'lucide-react';
+import { artClasses } from '@/data/artClassesData';
 
 const ArtClasses = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
   
-  const { data: classes, isLoading, error } = useQuery({
+  const { data: classesFromDB, isLoading, error } = useQuery({
     queryKey: ['art-classes'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -39,8 +40,16 @@ const ArtClasses = () => {
         
       if (error) throw error;
       return data;
+    },
+    // Fall back to our static data if the query fails
+    onError: (err) => {
+      console.error('Error fetching classes:', err);
+      return artClasses;
     }
   });
+  
+  // Use our mock data if the supabase query fails or returns empty
+  const classes = classesFromDB?.length ? classesFromDB : artClasses;
   
   // Filter classes
   const filteredClasses = classes?.filter(classItem => {
@@ -48,7 +57,7 @@ const ArtClasses = () => {
     const matchesSearch = searchQuery === '' || 
       classItem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       classItem.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      classItem.instructor?.name.toLowerCase().includes(searchQuery.toLowerCase());
+      (classItem.instructor?.name && classItem.instructor.name.toLowerCase().includes(searchQuery.toLowerCase()));
     
     // Filter by category
     const matchesCategory = selectedCategory === 'all' || 
@@ -216,14 +225,110 @@ const ArtClasses = () => {
           </TabsContent>
           
           <TabsContent value="popular" className="animate-fade-in">
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading popular classes...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredClasses.slice(0, 3).map((classItem) => (
+                <Link 
+                  key={classItem.id} 
+                  to={`/classes/${classItem.id}`}
+                  className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+                >
+                  <div className="relative aspect-video">
+                    <img 
+                      src={classItem.image} 
+                      alt={classItem.title} 
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 right-2">
+                      <Badge className="bg-artnexus-purple">
+                        {classItem.level}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-1">{classItem.title}</h3>
+                    
+                    <div className="flex items-center mb-2">
+                      <img 
+                        src={classItem.instructor?.photo || "https://via.placeholder.com/150"} 
+                        alt={classItem.instructor?.name || "Instructor"} 
+                        className="w-6 h-6 rounded-full mr-2"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {classItem.instructor?.name || "Instructor"}
+                      </span>
+                    </div>
+                    
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                      {classItem.description}
+                    </p>
+                    
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4 mr-1" />
+                        <span>{classItem.duration}</span>
+                      </div>
+                      <div className="font-bold text-artnexus-purple">
+                        {classItem.price === "0" ? "Free" : classItem.price}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
           </TabsContent>
           
           <TabsContent value="new" className="animate-fade-in">
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading newest classes...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredClasses.slice(3, 6).map((classItem) => (
+                <Link 
+                  key={classItem.id} 
+                  to={`/classes/${classItem.id}`}
+                  className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+                >
+                  <div className="relative aspect-video">
+                    <img 
+                      src={classItem.image} 
+                      alt={classItem.title} 
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 right-2">
+                      <Badge className="bg-artnexus-purple">
+                        {classItem.level}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-1">{classItem.title}</h3>
+                    
+                    <div className="flex items-center mb-2">
+                      <img 
+                        src={classItem.instructor?.photo || "https://via.placeholder.com/150"} 
+                        alt={classItem.instructor?.name || "Instructor"} 
+                        className="w-6 h-6 rounded-full mr-2"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {classItem.instructor?.name || "Instructor"}
+                      </span>
+                    </div>
+                    
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                      {classItem.description}
+                    </p>
+                    
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4 mr-1" />
+                        <span>{classItem.duration}</span>
+                      </div>
+                      <div className="font-bold text-artnexus-purple">
+                        {classItem.price === "0" ? "Free" : classItem.price}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
           </TabsContent>
           

@@ -1,282 +1,237 @@
 
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { ChevronLeft, Clock, MessageSquare } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { ArrowLeft, MessageSquare, Clock, Heart } from 'lucide-react';
+import { forumTopics, forumPosts } from '@/data/communityData';
 
 const ForumTopic = () => {
   const { id } = useParams<{ id: string }>();
   const [replyContent, setReplyContent] = useState('');
   
-  // Fetch topic
-  const { data: topic, isLoading: isTopicLoading, error: topicError } = useQuery({
-    queryKey: ['forum-topic', id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('forum_topics')
-        .select(`
-          *,
-          author:author_id(
-            username,
-            avatar
-          )
-        `)
-        .eq('id', id)
-        .single();
-        
-      if (error) throw error;
-      return data;
-    }
-  });
+  // Find the topic based on the ID from URL parameter
+  const topic = forumTopics.find(topic => topic.id === id);
+  const posts = (topic && forumPosts[topic.id]) || [];
   
-  // Fetch posts
-  const { data: posts, isLoading: isPostsLoading, error: postsError, refetch } = useQuery({
-    queryKey: ['forum-posts', id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('forum_posts')
-        .select(`
-          *,
-          author:author_id(
-            username,
-            avatar
-          )
-        `)
-        .eq('topic_id', id)
-        .order('created_at', { ascending: true });
-        
-      if (error) throw error;
-      return data;
-    }
-  });
-  
-  const handleAddReply = async () => {
-    if (!replyContent.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a reply",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast({
-          title: "Error",
-          description: "You need to be logged in to reply",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      const { error } = await supabase
-        .from('forum_posts')
-        .insert({
-          content: replyContent,
-          author_id: session.user.id,
-          topic_id: id
-        });
-        
-      if (error) throw error;
-      
-      // Update reply count
-      await supabase
-        .from('forum_topics')
-        .update({ 
-          reply_count: (topic?.reply_count || 0) + 1,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id);
-      
-      toast({
-        title: "Success",
-        description: "Your reply has been posted",
-      });
-      
-      setReplyContent('');
-      refetch();
-    } catch (error) {
-      console.error('Error posting reply:', error);
-      toast({
-        title: "Error",
-        description: "Failed to post reply. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-  
+  // Function to format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
+    return new Intl.DateTimeFormat('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
       day: 'numeric',
-      year: 'numeric',
       hour: 'numeric',
       minute: 'numeric'
     }).format(date);
   };
   
-  const isLoading = isTopicLoading || isPostsLoading;
-  const error = topicError || postsError;
+  const handleSubmitReply = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In a real app, this would submit the reply to the backend
+    console.log('Submitting reply:', replyContent);
+    setReplyContent('');
+    // Show a success message or update the UI
+    alert('Reply submitted successfully!');
+  };
   
-  if (isLoading) {
+  if (!topic) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
-        <div className="container mx-auto px-4 py-8 flex-grow">
-          <div className="text-center py-12">
-            <p>Loading topic...</p>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-  
-  if (error || !topic) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <div className="container mx-auto px-4 py-8 flex-grow">
-          <div className="text-center py-12">
-            <p className="text-red-500 mb-4">Topic not found or error loading topic</p>
-            <Button asChild>
-              <Link to="/forum">Back to Forum</Link>
+        <div className="container mx-auto px-4 py-16 text-center">
+          <h1 className="text-2xl font-bold mb-4">Topic Not Found</h1>
+          <p className="mb-6">The topic you're looking for doesn't exist or has been removed.</p>
+          <Link to="/forum">
+            <Button>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Forum
             </Button>
-          </div>
+          </Link>
         </div>
-        <Footer />
+        <div className="mt-auto">
+          <Footer />
+        </div>
       </div>
     );
   }
+  
+  const categoryColors: Record<string, string> = {
+    materials: 'bg-blue-500',
+    exhibitions: 'bg-purple-500',
+    digital: 'bg-green-500',
+    business: 'bg-orange-500',
+    critique: 'bg-red-500',
+    general: 'bg-gray-500',
+  };
   
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <Button variant="ghost" size="sm" asChild className="mb-4">
-            <Link to="/forum">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to Forum
-            </Link>
-          </Button>
+        <div className="mb-8">
+          <Link to="/forum" className="flex items-center text-muted-foreground hover:text-foreground mb-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Forum
+          </Link>
           
-          <h1 className="text-2xl font-bold mb-2">{topic.title}</h1>
-          
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-            <div className="flex items-center">
-              <span className="inline-block bg-muted px-2 py-1 text-xs rounded-full">
-                {topic.category}
-              </span>
-            </div>
-            <div className="flex items-center">
+          <div className="flex items-center space-x-2 mb-2">
+            <Badge className={`${categoryColors[topic.category] || 'bg-gray-500'}`}>
+              {topic.category}
+            </Badge>
+            <span className="text-sm text-muted-foreground flex items-center">
               <Clock className="h-4 w-4 mr-1" />
-              <span>Created {formatDate(topic.created_at)}</span>
-            </div>
-            <div className="flex items-center">
-              <MessageSquare className="h-4 w-4 mr-1" />
-              <span>{topic.reply_count} replies</span>
+              {formatDate(topic.created_at)}
+            </span>
+          </div>
+          
+          <h1 className="text-3xl font-bold">{topic.title}</h1>
+          
+          <div className="flex items-center mt-4">
+            <Avatar className="h-10 w-10 mr-3">
+              <AvatarImage src={topic.author.avatar} alt={topic.author.name} />
+              <AvatarFallback>{topic.author.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-medium">{topic.author.name}</p>
+              <p className="text-xs text-muted-foreground">Topic Starter</p>
             </div>
           </div>
         </div>
         
-        <div className="space-y-6">
-          {/* Original post */}
-          {posts && posts.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-              <div className="flex space-x-4">
-                <img 
-                  src={posts[0].author?.avatar || "https://via.placeholder.com/150"} 
-                  alt={posts[0].author?.username || "Unknown"} 
-                  className="w-12 h-12 rounded-full"
-                />
-                <div className="flex-grow">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-medium">{posts[0].author?.username || "Unknown"}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(posts[0].created_at)}
-                      </p>
+        <Separator className="my-6" />
+        
+        {/* Original post and replies */}
+        <div className="space-y-6 mb-8">
+          {/* First post is the topic content */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex">
+                <div className="mr-4 hidden md:block">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={topic.author.avatar} alt={topic.author.name} />
+                    <AvatarFallback>{topic.author.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                </div>
+                
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <div className="md:hidden mr-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={topic.author.avatar} alt={topic.author.name} />
+                          <AvatarFallback>{topic.author.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                      </div>
+                      <div>
+                        <p className="font-medium">{topic.author.name}</p>
+                        <p className="text-xs text-muted-foreground">{formatDate(topic.created_at)}</p>
+                      </div>
                     </div>
-                    <span className="bg-artnexus-purple text-white text-xs px-2 py-1 rounded-full">
-                      Author
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <Button variant="ghost" size="sm">
+                        <Heart className="h-4 w-4 mr-1" />
+                        <span className="text-xs">Like</span>
+                      </Button>
+                    </div>
                   </div>
-                  <div className="mt-4 text-muted-foreground whitespace-pre-line">
-                    {posts[0].content}
+                  
+                  <div className="prose prose-sm max-w-none dark:prose-invert">
+                    <p>
+                      {topic.excerpt}
+                    </p>
+                    <p className="mt-4">
+                      I'd really appreciate any insights or experiences you all might have on this topic. 
+                      Looking forward to a productive discussion!
+                    </p>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-          
-          {/* Separator for replies section */}
-          {posts && posts.length > 1 && (
-            <div className="flex items-center my-8">
-              <Separator className="flex-grow" />
-              <span className="px-4 text-sm text-muted-foreground">
-                {posts.length - 1} Replies
-              </span>
-              <Separator className="flex-grow" />
-            </div>
-          )}
+            </CardContent>
+          </Card>
           
           {/* Replies */}
-          {posts && posts.length > 1 && (
-            <div className="space-y-6">
-              {posts.slice(1).map((post) => (
-                <div key={post.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                  <div className="flex space-x-4">
-                    <img 
-                      src={post.author?.avatar || "https://via.placeholder.com/150"} 
-                      alt={post.author?.username || "Unknown"} 
-                      className="w-12 h-12 rounded-full"
-                    />
-                    <div className="flex-grow">
-                      <div className="flex items-baseline justify-between">
-                        <h3 className="font-medium">{post.author?.username || "Unknown"}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          {formatDate(post.created_at)}
-                        </p>
+          {posts.map((post) => (
+            <Card key={post.id}>
+              <CardContent className="p-6">
+                <div className="flex">
+                  <div className="mr-4 hidden md:block">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={post.author.avatar} alt={post.author.name} />
+                      <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  </div>
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center">
+                        <div className="md:hidden mr-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={post.author.avatar} alt={post.author.name} />
+                            <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                        </div>
+                        <div>
+                          <div className="flex items-center">
+                            <p className="font-medium">{post.author.name}</p>
+                            {post.author.role && (
+                              <Badge variant="outline" className="ml-2 text-xs">
+                                {post.author.role}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">{formatDate(post.created_at)}</p>
+                        </div>
                       </div>
-                      <div className="mt-4 text-muted-foreground whitespace-pre-line">
-                        {post.content}
+                      <div className="flex items-center space-x-2">
+                        <Button variant="ghost" size="sm">
+                          <Heart className="h-4 w-4 mr-1" />
+                          <span className="text-xs">Like</span>
+                        </Button>
                       </div>
+                    </div>
+                    
+                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                      <p>{post.content}</p>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        
+        {/* Reply form */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h3 className="text-lg font-bold mb-4">Post a Reply</h3>
           
-          {/* Reply form */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mt-8">
-            <h3 className="text-lg font-medium mb-4">Post a Reply</h3>
-            <Textarea
-              placeholder="Write your reply here..."
-              className="mb-4 min-h-[120px]"
-              value={replyContent}
-              onChange={(e) => setReplyContent(e.target.value)}
-            />
+          <form onSubmit={handleSubmitReply}>
+            <div className="mb-4">
+              <Textarea
+                placeholder="Write your reply here..."
+                rows={6}
+                value={replyContent}
+                onChange={(e) => setReplyContent(e.target.value)}
+                required
+              />
+            </div>
+            
             <Button 
-              className="bg-artnexus-purple hover:bg-artnexus-purple/90" 
-              onClick={handleAddReply}
+              type="submit" 
+              className="bg-artnexus-purple hover:bg-artnexus-purple/90"
+              disabled={!replyContent.trim()}
             >
+              <MessageSquare className="mr-2 h-4 w-4" />
               Post Reply
             </Button>
-          </div>
+          </form>
         </div>
       </div>
       

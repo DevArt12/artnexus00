@@ -15,13 +15,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, Play, Calendar } from 'lucide-react';
+import { performances } from '@/data/performanceData';
 
 const Performances = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
   
-  const { data: performances, isLoading, error } = useQuery({
+  const { data: performancesFromDB, isLoading, error } = useQuery({
     queryKey: ['performances'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -30,18 +31,30 @@ const Performances = () => {
         
       if (error) throw error;
       return data;
+    },
+    // Fall back to our mock data if the query fails
+    onError: (err) => {
+      console.error('Error fetching performances:', err);
+      return performances;
     }
   });
   
+  // Use our mock data if the supabase query fails or returns empty
+  const allPerformances = performancesFromDB?.length ? performancesFromDB : performances;
+  
   // Filter performances
-  const filteredPerformances = performances?.filter(performance => {
+  const filteredPerformances = allPerformances?.filter(performance => {
     // Filter by search
     const matchesSearch = searchQuery === '' || 
       performance.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       performance.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       performance.artist.toLowerCase().includes(searchQuery.toLowerCase());
     
-    return matchesSearch;
+    // Filter by category
+    const matchesCategory = selectedCategory === 'all' || 
+      performance.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
   }) || [];
   
   const handlePlayVideo = (videoUrl: string) => {
@@ -188,20 +201,102 @@ const Performances = () => {
           </TabsContent>
           
           <TabsContent value="recent" className="animate-fade-in">
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading recent performances...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPerformances.slice(0, 3).map((performance) => (
+                <div key={performance.id} className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md">
+                  <div className="relative aspect-video group cursor-pointer" onClick={() => handlePlayVideo(performance.video_url)}>
+                    <img 
+                      src={performance.image} 
+                      alt={performance.title} 
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-artnexus-purple rounded-full p-3">
+                        <Play className="h-8 w-8 text-white" fill="white" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-1">{performance.title}</h3>
+                    <p className="text-muted-foreground text-sm mb-2">
+                      {performance.artist}
+                    </p>
+                    
+                    <div className="flex items-center text-xs text-muted-foreground mb-3">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      <span>{performance.date}</span>
+                    </div>
+                    
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                      {performance.description}
+                    </p>
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => handlePlayVideo(performance.video_url)}
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      Watch Performance
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           </TabsContent>
           
           <TabsContent value="popular" className="animate-fade-in">
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading popular performances...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPerformances.slice(3, 6).map((performance) => (
+                <div key={performance.id} className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md">
+                  <div className="relative aspect-video group cursor-pointer" onClick={() => handlePlayVideo(performance.video_url)}>
+                    <img 
+                      src={performance.image} 
+                      alt={performance.title} 
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-artnexus-purple rounded-full p-3">
+                        <Play className="h-8 w-8 text-white" fill="white" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-1">{performance.title}</h3>
+                    <p className="text-muted-foreground text-sm mb-2">
+                      {performance.artist}
+                    </p>
+                    
+                    <div className="flex items-center text-xs text-muted-foreground mb-3">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      <span>{performance.date}</span>
+                    </div>
+                    
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                      {performance.description}
+                    </p>
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => handlePlayVideo(performance.video_url)}
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      Watch Performance
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           </TabsContent>
           
           <TabsContent value="upcoming" className="animate-fade-in">
             <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading upcoming events...</p>
+              <p className="text-muted-foreground">Check back soon for upcoming events!</p>
             </div>
           </TabsContent>
         </Tabs>
