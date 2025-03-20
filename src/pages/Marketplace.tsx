@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -16,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Search, Filter, Camera3d, LogIn, ShoppingCart, View3d } from 'lucide-react';
+import { Search, Filter, Camera, LogIn, ShoppingCart, View } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Marketplace = () => {
@@ -28,17 +27,14 @@ const Marketplace = () => {
   const [user, setUser] = useState<any>(null);
   const [cartItems, setCartItems] = useState<string[]>([]);
   
-  // Check if user is logged in
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
       
-      // If user is logged in, fetch cart items from database
       if (user) {
         fetchCartItems(user.id);
       } else {
-        // Get cart items from local storage
         const storedCart = localStorage.getItem('cart');
         if (storedCart) {
           setCartItems(JSON.parse(storedCart));
@@ -48,16 +44,13 @@ const Marketplace = () => {
     
     checkUser();
     
-    // Set up auth state listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user || null);
         
-        // When auth state changes, update cart accordingly
         if (session?.user) {
           fetchCartItems(session.user.id);
         } else {
-          // Get cart items from local storage when logged out
           const storedCart = localStorage.getItem('cart');
           if (storedCart) {
             setCartItems(JSON.parse(storedCart));
@@ -71,7 +64,6 @@ const Marketplace = () => {
     };
   }, []);
   
-  // Fetch cart items from database
   const fetchCartItems = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -88,7 +80,6 @@ const Marketplace = () => {
     }
   };
   
-  // Fetch marketplace items
   const { data: marketplace, isLoading, error } = useQuery({
     queryKey: ['marketplace-items'],
     queryFn: async () => {
@@ -125,13 +116,11 @@ const Marketplace = () => {
     }
     
     try {
-      // Check if item is already in cart
       if (cartItems.includes(itemId)) {
         toast.info("This item is already in your cart");
         return;
       }
       
-      // Add item to database cart if logged in
       const { error } = await supabase
         .from('cart_items')
         .insert({
@@ -142,11 +131,9 @@ const Marketplace = () => {
         
       if (error) throw error;
       
-      // Update local state
       const updatedCart = [...cartItems, itemId];
       setCartItems(updatedCart);
       
-      // Save to local storage as backup
       localStorage.setItem('cart', JSON.stringify(updatedCart));
       
       toast({
@@ -173,26 +160,21 @@ const Marketplace = () => {
     navigate(`/ar-view/${artworkId}`);
   };
   
-  // Filter and sort marketplace items
   const filteredItems = marketplace?.filter(item => {
-    // Filter by search
     const matchesSearch = searchQuery === '' || 
       item.artworks.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.artworks.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (item.artworks.artists?.name && item.artworks.artists.name.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    // Filter by category
     const matchesCategory = selectedCategory === 'all' || 
       item.artworks.category === selectedCategory;
     
-    // Filter by price
     const itemPrice = parseInt(item.price.replace(/[^0-9]/g, ''));
     const matchesPrice = itemPrice >= priceRange[0] && itemPrice <= priceRange[1];
     
     return matchesSearch && matchesCategory && matchesPrice;
   }) || [];
   
-  // Sort items
   const sortedItems = [...filteredItems].sort((a, b) => {
     switch (sortBy) {
       case 'price-low':
@@ -254,7 +236,6 @@ const Marketplace = () => {
         </div>
         
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filter sidebar */}
           <div className="w-full lg:w-1/4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sticky top-20">
               <h2 className="text-lg font-bold mb-4 flex items-center">
@@ -335,7 +316,6 @@ const Marketplace = () => {
             </div>
           </div>
           
-          {/* Marketplace items */}
           <div className="w-full lg:w-3/4">
             <Tabs defaultValue="all">
               <TabsList className="mb-6">
@@ -397,18 +377,18 @@ const Marketplace = () => {
                                 size="sm"
                                 onClick={() => handleViewInAR(item.artwork_id)}
                                 className="text-artnexus-teal"
-                                title="View in AR"
+                                aria-label="View in AR"
                               >
-                                <Camera3d className="h-4 w-4" />
+                                <Camera className="h-4 w-4" />
                               </Button>
                               <Button 
                                 variant="outline"
                                 size="sm"
                                 onClick={() => navigate(`/artwork/${item.artwork_id}`)}
                                 className="text-artnexus-purple"
-                                title="View Details"
+                                aria-label="View Details"
                               >
-                                <View3d className="h-4 w-4" />
+                                <View className="h-4 w-4" />
                               </Button>
                             </div>
                           </div>
@@ -467,7 +447,6 @@ const Marketplace = () => {
   );
 };
 
-// Define the Upload icon which was missing in the imports
 const Upload = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
