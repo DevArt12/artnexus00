@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { performances } from '@/data/performanceData';
+import { performances as performanceData } from '@/data/performanceData';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -46,7 +47,7 @@ export default function Performances() {
   });
   
   // Use mock data if Supabase data is empty or there's an error
-  const performances = (data && data.length > 0) ? data : performances;
+  const performanceItems = (data && data.length > 0) ? data : performanceData;
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -69,13 +70,13 @@ export default function Performances() {
                 <div className="col-span-full flex justify-center items-center h-64">
                   <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
                 </div>
-              ) : performances.length === 0 ? (
+              ) : performanceItems.length === 0 ? (
                 <div className="col-span-full text-center py-12">
                   <h3 className="text-lg font-medium">No featured performances available</h3>
                   <p className="text-gray-500 mt-2">Check back soon for new performances</p>
                 </div>
               ) : (
-                performances.slice(0, 2).map((performance: Performance) => (
+                performanceItems.slice(0, 2).map((performance: Performance) => (
                   <Card key={performance.id} className="overflow-hidden">
                     <div className="aspect-video overflow-hidden">
                       <img
@@ -117,13 +118,13 @@ export default function Performances() {
                 <div className="col-span-full flex justify-center items-center h-64">
                   <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
                 </div>
-              ) : performances.length === 0 ? (
+              ) : performanceItems.length === 0 ? (
                 <div className="col-span-full text-center py-12">
                   <h3 className="text-lg font-medium">No upcoming performances</h3>
                   <p className="text-gray-500 mt-2">Check back soon for new performances</p>
                 </div>
               ) : (
-                performances.map((performance: Performance) => (
+                performanceItems.map((performance: Performance) => (
                   <Card key={performance.id} className="overflow-hidden">
                     <div className="aspect-video overflow-hidden">
                       <img
@@ -159,13 +160,13 @@ export default function Performances() {
                 <div className="col-span-full flex justify-center items-center h-64">
                   <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
                 </div>
-              ) : performances.length === 0 ? (
+              ) : performanceItems.length === 0 ? (
                 <div className="col-span-full text-center py-12">
                   <h3 className="text-lg font-medium">No past performances</h3>
                   <p className="text-gray-500 mt-2">Check back soon</p>
                 </div>
               ) : (
-                performances.slice(0, 3).map((performance: Performance) => (
+                performanceItems.slice(0, 3).map((performance: Performance) => (
                   <Card key={performance.id} className="overflow-hidden">
                     <div className="aspect-video overflow-hidden">
                       <img
