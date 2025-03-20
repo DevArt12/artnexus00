@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { marketplaceData } from '@/data/marketplaceData';
+import { marketplaceItems } from '@/data/marketplaceData';
 
 // Artwork categories
 const categories = [
@@ -79,7 +78,7 @@ export default function Marketplace() {
   });
   
   // Use mock data if Supabase data is empty or there's an error
-  const items = (data && data.length > 0) ? data : marketplaceData;
+  const items = (data && data.length > 0) ? data : marketplaceItems;
   
   // Handle category toggle
   const toggleCategory = (category: string) => {

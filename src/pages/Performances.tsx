@@ -1,10 +1,9 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { performanceData } from '@/data/performanceData';
+import { performances } from '@/data/performanceData';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -47,7 +46,7 @@ export default function Performances() {
   });
   
   // Use mock data if Supabase data is empty or there's an error
-  const performances = (data && data.length > 0) ? data : performanceData;
+  const performances = (data && data.length > 0) ? data : performances;
   
   return (
     <div className="min-h-screen flex flex-col">

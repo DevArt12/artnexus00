@@ -8,7 +8,7 @@ import { Calendar, MapPin, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { eventsData } from '@/data/eventsData';
+import { events } from '@/data/eventsData';
 
 export default function Events() {
   const [events, setEvents] = useState<any[]>([]);
@@ -41,7 +41,7 @@ export default function Events() {
     if (data && data.length > 0) {
       setEvents(data);
     } else if (!isLoading || isError) {
-      setEvents(eventsData);
+      setEvents(events);
     }
   }, [data, isLoading, isError]);
   
