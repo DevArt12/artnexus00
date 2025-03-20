@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -137,10 +136,7 @@ const Marketplace = () => {
       
       localStorage.setItem('cart', JSON.stringify(updatedCart));
       
-      // Fixed toast call - using object format with description instead of title
-      toast({
-        description: "The artwork has been added to your cart successfully.",
-      });
+      toast.success("The artwork has been added to your cart successfully.");
     } catch (err: any) {
       console.error('Error adding to cart:', err);
       toast.error(err.message || "Failed to add item to cart");
