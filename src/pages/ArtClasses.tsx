@@ -1,350 +1,178 @@
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { artClasses as mockArtClasses } from '@/data/artClassesData';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Search, Clock, UserCircle, BookOpen } from 'lucide-react';
-import { artClasses } from '@/data/artClassesData';
+import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
-const ArtClasses = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedLevel, setSelectedLevel] = useState('all');
-  
-  const { data: classesFromDB, isLoading, error } = useQuery({
-    queryKey: ['art-classes'],
+// Levels and categories for filtering
+const levels = ["all", "beginner", "intermediate", "advanced"];
+const categories = ["all", "painting", "digital", "sculpture", "photography", "crafts", "drawing"];
+
+export default function ArtClasses() {
+  const [selectedLevel, setSelectedLevel] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Fetch art classes from Supabase
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['artClasses'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('art_classes')
-        .select(`
-          *,
-          instructor:instructor_id(
-            id,
-            name,
-            photo
-          )
-        `);
-        
-      if (error) throw error;
+        .select('*, instructor:instructor_id(id, name, photo)');
+      
+      if (error) {
+        console.error('Error fetching art classes:', error);
+        throw error;
+      }
+      
       return data;
     },
-    // Fall back to our static data if the query fails
-    onError: (err) => {
-      console.error('Error fetching classes:', err);
-      return artClasses;
+    meta: {
+      onError: (error: any) => {
+        console.error('Error in art classes query:', error);
+        toast.error('Failed to load art classes. Using sample data instead.');
+      }
     }
   });
-  
-  // Use our mock data if the supabase query fails or returns empty
-  const classes = classesFromDB?.length ? classesFromDB : artClasses;
-  
-  // Filter classes
-  const filteredClasses = classes?.filter(classItem => {
-    // Filter by search
-    const matchesSearch = searchQuery === '' || 
-      classItem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      classItem.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (classItem.instructor?.name && classItem.instructor.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  // Use mock data if Supabase data is empty or there's an error
+  const artClasses = (data && data.length > 0) ? data : mockArtClasses;
+
+  // Filter classes based on selected level, category, and search query
+  const filteredClasses = artClasses.filter(cls => {
+    const levelMatch = selectedLevel === "all" || cls.level === selectedLevel;
+    const categoryMatch = selectedCategory === "all" || cls.category === selectedCategory;
+    const searchMatch = searchQuery === "" || 
+      cls.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      cls.description.toLowerCase().includes(searchQuery.toLowerCase());
     
-    // Filter by category
-    const matchesCategory = selectedCategory === 'all' || 
-      classItem.category === selectedCategory;
-    
-    // Filter by level
-    const matchesLevel = selectedLevel === 'all' || 
-      classItem.level === selectedLevel;
-    
-    return matchesSearch && matchesCategory && matchesLevel;
-  }) || [];
-  
+    return levelMatch && categoryMatch && searchMatch;
+  });
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-2">Art Classes</h1>
-        <p className="text-muted-foreground mb-8">
-          Learn new techniques and improve your skills with expert-led video tutorials
-        </p>
+      <main className="container mx-auto py-8 px-4 flex-1">
+        <h1 className="text-3xl font-bold mb-6">Art Classes</h1>
         
-        {/* Filters */}
         <div className="mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm font-medium block mb-2">
-                  Search Classes
-                </label>
-                <div className="relative">
-                  <Input
-                    type="text"
-                    placeholder="Search by title, instructor, or keyword..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                </div>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium block mb-2">
-                  Category
-                </label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="painting">Painting</SelectItem>
-                    <SelectItem value="drawing">Drawing</SelectItem>
-                    <SelectItem value="sculpture">Sculpture</SelectItem>
-                    <SelectItem value="digital">Digital Art</SelectItem>
-                    <SelectItem value="mixed-media">Mixed Media</SelectItem>
-                    <SelectItem value="photography">Photography</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium block mb-2">
-                  Difficulty Level
-                </label>
-                <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Levels</SelectItem>
-                    <SelectItem value="beginner">Beginner</SelectItem>
-                    <SelectItem value="intermediate">Intermediate</SelectItem>
-                    <SelectItem value="advanced">Advanced</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex-1">
+              <Input
+                placeholder="Search classes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div className="w-full md:w-48">
+              <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {levels.map(level => (
+                    <SelectItem key={level} value={level}>
+                      {level.charAt(0).toUpperCase() + level.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full md:w-48">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map(category => (
+                    <SelectItem key={category} value={category}>
+                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
         
-        {/* Classes list */}
-        <Tabs defaultValue="featured">
-          <TabsList className="mb-6">
-            <TabsTrigger value="featured">Featured</TabsTrigger>
-            <TabsTrigger value="popular">Popular</TabsTrigger>
-            <TabsTrigger value="new">Newest</TabsTrigger>
-            <TabsTrigger value="free">Free Classes</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="featured" className="animate-fade-in">
-            {isLoading ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+          </div>
+        ) : (
+          <>
+            {filteredClasses.length === 0 ? (
               <div className="text-center py-12">
-                <p>Loading classes...</p>
-              </div>
-            ) : error ? (
-              <div className="text-center py-12">
-                <p className="text-red-500">Error loading classes. Please try again.</p>
-              </div>
-            ) : filteredClasses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredClasses.map((classItem) => (
-                  <Link 
-                    key={classItem.id} 
-                    to={`/classes/${classItem.id}`}
-                    className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
-                  >
-                    <div className="relative aspect-video">
-                      <img 
-                        src={classItem.image} 
-                        alt={classItem.title} 
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-2 right-2">
-                        <Badge className="bg-artnexus-purple">
-                          {classItem.level}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <div className="p-4">
-                      <h3 className="font-bold text-lg mb-1">{classItem.title}</h3>
-                      
-                      <div className="flex items-center mb-2">
-                        <img 
-                          src={classItem.instructor?.photo || "https://via.placeholder.com/150"} 
-                          alt={classItem.instructor?.name || "Instructor"} 
-                          className="w-6 h-6 rounded-full mr-2"
-                        />
-                        <span className="text-sm text-muted-foreground">
-                          {classItem.instructor?.name || "Instructor"}
-                        </span>
-                      </div>
-                      
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                        {classItem.description}
-                      </p>
-                      
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Clock className="h-4 w-4 mr-1" />
-                          <span>{classItem.duration}</span>
-                        </div>
-                        <div className="font-bold text-artnexus-purple">
-                          {classItem.price === "0" ? "Free" : classItem.price}
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+                <h3 className="text-lg font-medium">No classes found</h3>
+                <p className="text-gray-500 mt-2">Try adjusting your filters or search query</p>
               </div>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">No classes found matching your criteria</p>
-                <Button onClick={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('all');
-                  setSelectedLevel('all');
-                }}>
-                  Clear Filters
-                </Button>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredClasses.map(artClass => (
+                  <Card key={artClass.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="aspect-video overflow-hidden">
+                      <img
+                        src={artClass.image}
+                        alt={artClass.title}
+                        className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+                      />
+                    </div>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+                          {artClass.level}
+                        </span>
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                          {artClass.category}
+                        </span>
+                      </div>
+                      <CardTitle className="text-xl">{artClass.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pb-3">
+                      <p className="text-gray-500 line-clamp-2">{artClass.description}</p>
+                      
+                      <div className="flex items-center mt-4">
+                        <img
+                          src={artClass.instructor.photo}
+                          alt={artClass.instructor.name}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                        <div className="ml-3">
+                          <p className="text-sm font-medium">{artClass.instructor.name}</p>
+                          <p className="text-xs text-gray-500">Instructor</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="flex justify-between items-center border-t pt-4">
+                      <div>
+                        <p className="text-lg font-bold text-purple-600">{artClass.price}</p>
+                        <p className="text-xs text-gray-500">{artClass.duration}</p>
+                      </div>
+                      <Link to={`/class/${artClass.id}`}>
+                        <Button size="sm">View Details</Button>
+                      </Link>
+                    </CardFooter>
+                  </Card>
+                ))}
               </div>
             )}
-          </TabsContent>
-          
-          <TabsContent value="popular" className="animate-fade-in">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredClasses.slice(0, 3).map((classItem) => (
-                <Link 
-                  key={classItem.id} 
-                  to={`/classes/${classItem.id}`}
-                  className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
-                >
-                  <div className="relative aspect-video">
-                    <img 
-                      src={classItem.image} 
-                      alt={classItem.title} 
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-2 right-2">
-                      <Badge className="bg-artnexus-purple">
-                        {classItem.level}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg mb-1">{classItem.title}</h3>
-                    
-                    <div className="flex items-center mb-2">
-                      <img 
-                        src={classItem.instructor?.photo || "https://via.placeholder.com/150"} 
-                        alt={classItem.instructor?.name || "Instructor"} 
-                        className="w-6 h-6 rounded-full mr-2"
-                      />
-                      <span className="text-sm text-muted-foreground">
-                        {classItem.instructor?.name || "Instructor"}
-                      </span>
-                    </div>
-                    
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                      {classItem.description}
-                    </p>
-                    
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Clock className="h-4 w-4 mr-1" />
-                        <span>{classItem.duration}</span>
-                      </div>
-                      <div className="font-bold text-artnexus-purple">
-                        {classItem.price === "0" ? "Free" : classItem.price}
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="new" className="animate-fade-in">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredClasses.slice(3, 6).map((classItem) => (
-                <Link 
-                  key={classItem.id} 
-                  to={`/classes/${classItem.id}`}
-                  className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
-                >
-                  <div className="relative aspect-video">
-                    <img 
-                      src={classItem.image} 
-                      alt={classItem.title} 
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-2 right-2">
-                      <Badge className="bg-artnexus-purple">
-                        {classItem.level}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg mb-1">{classItem.title}</h3>
-                    
-                    <div className="flex items-center mb-2">
-                      <img 
-                        src={classItem.instructor?.photo || "https://via.placeholder.com/150"} 
-                        alt={classItem.instructor?.name || "Instructor"} 
-                        className="w-6 h-6 rounded-full mr-2"
-                      />
-                      <span className="text-sm text-muted-foreground">
-                        {classItem.instructor?.name || "Instructor"}
-                      </span>
-                    </div>
-                    
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                      {classItem.description}
-                    </p>
-                    
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Clock className="h-4 w-4 mr-1" />
-                        <span>{classItem.duration}</span>
-                      </div>
-                      <div className="font-bold text-artnexus-purple">
-                        {classItem.price === "0" ? "Free" : classItem.price}
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="free" className="animate-fade-in">
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading free classes...</p>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+          </>
+        )}
+      </main>
       
-      <div className="mt-auto">
-        <Footer />
-      </div>
+      <Footer />
     </div>
   );
-};
-
-export default ArtClasses;
+}

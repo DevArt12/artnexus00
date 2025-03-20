@@ -45,8 +45,10 @@ const UploadArt = () => {
   }, [navigate]);
   
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("Image selection triggered");
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      console.log("Selected file:", file.name, "size:", file.size);
       
       // Check file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
@@ -60,6 +62,7 @@ const UploadArt = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
+        console.log("Preview generated successfully");
       };
       reader.readAsDataURL(file);
     }
@@ -68,6 +71,7 @@ const UploadArt = () => {
   const clearImageSelection = () => {
     setImageFile(null);
     setImagePreview(null);
+    console.log("Image selection cleared");
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -299,13 +303,11 @@ const UploadArt = () => {
                     <p className="text-gray-500 mb-2">Drag and drop your artwork image here</p>
                     <p className="text-gray-400 text-sm mb-4">or</p>
                     <label htmlFor="artwork-image" className="cursor-pointer">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700"
+                      <span 
+                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 h-10 px-4 py-2"
                       >
                         Select Image
-                      </Button>
+                      </span>
                       <input
                         id="artwork-image"
                         type="file"
