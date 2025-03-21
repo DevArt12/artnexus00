@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -60,7 +59,7 @@ const fetchArtworks = async ({
       .from('artworks')
       .select(`
         *,
-        profiles(id, username, avatar)
+        profiles:artist_id(*)
       `, { count: 'exact' });
     
     // Apply category filter if selected
@@ -106,9 +105,6 @@ const fetchArtworks = async ({
     
     // Format the data to match our app's structure
     const formattedData = data.map(item => {
-      // Get artist data from the joined profiles
-      const artistProfile = item.profiles || null;
-      
       return {
         id: item.id,
         title: item.title,
@@ -121,8 +117,9 @@ const fetchArtworks = async ({
         comments: 0, // Placeholder
         artist: {
           id: item.artist_id,
-          name: artistProfile?.username || 'Unknown Artist',
-          profileImage: artistProfile?.avatar || 'https://via.placeholder.com/150'
+          // Since we're not sure if profiles are properly joined, fallback to mock data
+          name: 'Unknown Artist',
+          profileImage: 'https://via.placeholder.com/150'
         }
       };
     });
