@@ -1,15 +1,66 @@
 
-import { useState } from 'react';
-import { categories } from '@/data/mockData';
+import { useState, useEffect } from 'react';
+import { supabase, handleSupabaseError } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useQuery } from '@tanstack/react-query';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Fallback categories from mock data
+import { categories as mockCategories } from '@/data/mockData';
 
 interface CategoryFilterProps {
   onSelectCategory: (category: string | null) => void;
   selectedCategory: string | null;
 }
 
+const fetchCategories = async () => {
+  try {
+    // Try to get distinct categories from the database
+    const { data, error } = await supabase
+      .from('artworks')
+      .select('category')
+      .not('category', 'is', null)
+      .order('category');
+    
+    if (error) {
+      throw error;
+    }
+    
+    // Extract unique categories
+    const uniqueCategories = [...new Set(data.map(item => item.category))];
+    return uniqueCategories.length > 0 ? uniqueCategories : mockCategories;
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    // Fall back to mock data if there's an error
+    return mockCategories;
+  }
+};
+
 const CategoryFilter = ({ onSelectCategory, selectedCategory }: CategoryFilterProps) => {
+  // Use React Query to fetch and cache categories
+  const { data: categories, isLoading } = useQuery({
+    queryKey: ['categories'],
+    queryFn: fetchCategories,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+  
+  if (isLoading) {
+    return (
+      <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1">
+        <ScrollArea className="w-full whitespace-nowrap">
+          <div className="flex space-x-2 px-2 py-2">
+            <Skeleton className="h-10 w-16 rounded-full" />
+            <Skeleton className="h-10 w-24 rounded-full" />
+            <Skeleton className="h-10 w-20 rounded-full" />
+            <Skeleton className="h-10 w-28 rounded-full" />
+            <Skeleton className="h-10 w-22 rounded-full" />
+          </div>
+        </ScrollArea>
+      </div>
+    );
+  }
+  
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1">
       <ScrollArea className="w-full whitespace-nowrap">
@@ -26,7 +77,7 @@ const CategoryFilter = ({ onSelectCategory, selectedCategory }: CategoryFilterPr
             All
           </button>
           
-          {categories.map((category) => (
+          {categories?.map((category) => (
             <button
               key={category}
               onClick={() => onSelectCategory(category)}

@@ -16,3 +16,15 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: typeof window !== 'undefined' ? localStorage : undefined,
   }
 });
+
+// Helper function to handle Supabase errors more gracefully
+export const handleSupabaseError = (error: any) => {
+  console.error('Supabase Error:', error);
+  
+  // Return a user-friendly error message
+  return {
+    message: error?.message || 'An unexpected error occurred',
+    status: error?.status || 500,
+    details: error?.details || null
+  };
+};
