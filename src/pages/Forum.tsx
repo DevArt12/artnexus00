@@ -1,6 +1,7 @@
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -8,8 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, MessageSquare, Clock, User } from 'lucide-react';
+import { Search, MessageSquare, Clock, User, Plus } from 'lucide-react';
 import { forumTopics } from '@/data/communityData';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from 'sonner';
 
 // Function to format date
 const formatDate = (dateString: string) => {
@@ -31,15 +36,133 @@ const categoryColors: Record<string, string> = {
 };
 
 const Forum = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [newTopicTitle, setNewTopicTitle] = useState('');
+  const [newTopicContent, setNewTopicContent] = useState('');
+  const [newTopicCategory, setNewTopicCategory] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [topics, setTopics] = useState(forumTopics);
+  
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setIsAuthenticated(!!user);
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+        setIsAuthenticated(false);
+      }
+    };
+    
+    checkAuth();
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setIsAuthenticated(!!session?.user);
+      }
+    );
+    
+    return () => subscription.unsubscribe();
+  }, []);
   
   // Filter topics based on search query
-  const filteredTopics = forumTopics.filter(topic => 
+  const filteredTopics = topics.filter(topic => 
     searchQuery === '' || 
     topic.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     topic.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
     topic.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  
+  const handleCreateTopic = async () => {
+    if (!isAuthenticated) {
+      toast.error('You must be logged in to create a topic');
+      navigate('/auth');
+      return;
+    }
+    
+    if (!newTopicTitle.trim() || !newTopicContent.trim() || !newTopicCategory) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User not found');
+      }
+      
+      // First, create the topic in the database
+      const { data: topicData, error: topicError } = await supabase
+        .from('forum_topics')
+        .insert({
+          title: newTopicTitle,
+          category: newTopicCategory,
+          author_id: user.id,
+          reply_count: 0
+        })
+        .select('id')
+        .single();
+      
+      if (topicError) throw topicError;
+      
+      // Then, create the first post for the topic
+      const { error: postError } = await supabase
+        .from('forum_posts')
+        .insert({
+          topic_id: topicData.id,
+          author_id: user.id,
+          content: newTopicContent
+        });
+      
+      if (postError) throw postError;
+      
+      toast.success('Topic created successfully!');
+      setIsDialogOpen(false);
+      setNewTopicTitle('');
+      setNewTopicContent('');
+      setNewTopicCategory('');
+      
+      // Simulate adding to local state for immediate feedback 
+      // In a real app, you would fetch the updated topics from the server
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('avatar, username')
+        .eq('id', user.id)
+        .single();
+      
+      const newTopic = {
+        id: topicData.id,
+        title: newTopicTitle,
+        category: newTopicCategory,
+        author: {
+          id: user.id,
+          name: profileData?.username || user.email?.split('@')[0] || 'User',
+          avatar: profileData?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
+        },
+        created_at: new Date().toISOString(),
+        reply_count: 0,
+        excerpt: newTopicContent.substring(0, 150) + (newTopicContent.length > 150 ? '...' : '')
+      };
+      
+      setTopics([newTopic, ...topics]);
+      
+      // Navigate to the new topic
+      navigate(`/forum/topic/${topicData.id}`);
+    } catch (error: any) {
+      console.error('Error creating topic:', error);
+      toast.error(error.message || 'Failed to create topic');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -54,10 +177,75 @@ const Forum = () => {
             </p>
           </div>
           
-          <Button className="mt-4 md:mt-0 bg-artnexus-purple hover:bg-artnexus-purple/90">
-            <MessageSquare className="mr-2 h-4 w-4" />
-            New Topic
-          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="mt-4 md:mt-0 bg-artnexus-purple hover:bg-artnexus-purple/90">
+                <MessageSquare className="mr-2 h-4 w-4" />
+                New Topic
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[550px]">
+              <DialogHeader>
+                <DialogTitle>Create New Topic</DialogTitle>
+                <DialogDescription>
+                  Share your thoughts with the community. Fill in the details below to start a new discussion.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <label htmlFor="title" className="text-sm font-medium">Title</label>
+                  <Input
+                    id="title"
+                    placeholder="Enter topic title"
+                    value={newTopicTitle}
+                    onChange={(e) => setNewTopicTitle(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="category" className="text-sm font-medium">Category</label>
+                  <Select value={newTopicCategory} onValueChange={setNewTopicCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="materials">Materials</SelectItem>
+                      <SelectItem value="exhibitions">Exhibitions</SelectItem>
+                      <SelectItem value="digital">Digital Art</SelectItem>
+                      <SelectItem value="business">Business</SelectItem>
+                      <SelectItem value="critique">Critique</SelectItem>
+                      <SelectItem value="general">General</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="content" className="text-sm font-medium">Content</label>
+                  <Textarea
+                    id="content"
+                    placeholder="Write your post here..."
+                    rows={6}
+                    value={newTopicContent}
+                    onChange={(e) => setNewTopicContent(e.target.value)}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleCreateTopic}
+                  disabled={isSubmitting}
+                  className="bg-artnexus-purple hover:bg-artnexus-purple/90"
+                >
+                  {isSubmitting ? 'Creating...' : 'Create Topic'}
+                  <Plus className="ml-2 h-4 w-4" />
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
         
         {/* Search and filters */}

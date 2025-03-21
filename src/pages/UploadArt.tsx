@@ -42,6 +42,18 @@ const UploadArt = () => {
     };
     
     checkUser();
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user);
+        if (!session?.user) {
+          navigate('/auth');
+        }
+      }
+    );
+    
+    return () => subscription.unsubscribe();
   }, [navigate]);
   
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,6 +108,18 @@ const UploadArt = () => {
       const fileName = `${uuidv4()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
       
+      console.log("Uploading file to storage:", filePath);
+      
+      // Create bucket if it doesn't exist
+      const { data: bucketData, error: bucketError } = await supabase.storage.getBucket('artworks');
+      
+      if (bucketError && bucketError.message.includes('does not exist')) {
+        console.log("Bucket doesn't exist, creating it");
+        await supabase.storage.createBucket('artworks', {
+          public: true,
+        });
+      }
+      
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('artworks')
         .upload(filePath, imageFile);
@@ -110,7 +134,10 @@ const UploadArt = () => {
         .from('artworks')
         .getPublicUrl(filePath);
       
+      console.log("Upload successful, public URL:", publicUrl);
+      
       // 2. Create artwork entry in database
+      console.log("Creating artwork entry in database");
       const { data: artworkData, error: artworkError } = await supabase
         .from('artworks')
         .insert({
@@ -131,12 +158,15 @@ const UploadArt = () => {
         throw artworkError;
       }
       
+      console.log("Artwork created with ID:", artworkData.id);
+      
       // 3. Create marketplace item
+      console.log("Creating marketplace item");
       const { error: marketplaceError } = await supabase
         .from('marketplace_items')
         .insert({
           artwork_id: artworkData.id,
-          price: `$${price}`,
+          price: price.startsWith('$') ? price : `$${price}`,
           type: type,
           status: 'available',
         });
