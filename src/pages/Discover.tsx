@@ -60,7 +60,7 @@ const fetchArtworks = async ({
       .from('artworks')
       .select(`
         *,
-        profiles:artist_id (id, username, avatar_url)
+        profiles(id, username, avatar)
       `, { count: 'exact' });
     
     // Apply category filter if selected
@@ -105,22 +105,27 @@ const fetchArtworks = async ({
     }
     
     // Format the data to match our app's structure
-    const formattedData = data.map(item => ({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      image: item.image,
-      createdAt: item.created_at,
-      artistId: item.artist_id,
-      categories: [item.category],
-      likes: 0, // Placeholder
-      comments: 0, // Placeholder
-      artist: {
-        id: item.profiles?.id,
-        name: item.profiles?.username || 'Unknown Artist',
-        profileImage: item.profiles?.avatar_url || 'https://via.placeholder.com/150'
-      }
-    }));
+    const formattedData = data.map(item => {
+      // Get artist data from the joined profiles
+      const artistProfile = item.profiles || null;
+      
+      return {
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        image: item.image,
+        createdAt: item.created_at,
+        artistId: item.artist_id,
+        categories: [item.category],
+        likes: 0, // Placeholder
+        comments: 0, // Placeholder
+        artist: {
+          id: item.artist_id,
+          name: artistProfile?.username || 'Unknown Artist',
+          profileImage: artistProfile?.avatar || 'https://via.placeholder.com/150'
+        }
+      };
+    });
     
     return { 
       artworks: formattedData.length > 0 ? formattedData : mockArtworks, 
