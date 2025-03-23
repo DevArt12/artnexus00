@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, ensureStorageBucket, ensureArtistExists } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -103,22 +103,26 @@ const UploadArt = () => {
     try {
       setLoading(true);
       
+      // Ensure the artist record exists for the current user
+      const artistExists = await ensureArtistExists(user.id);
+      if (!artistExists) {
+        toast.error('Failed to create artist profile. Please try again or contact support.');
+        return;
+      }
+      
+      // Ensure the storage bucket exists
+      const bucketExists = await ensureStorageBucket('artworks');
+      if (!bucketExists) {
+        toast.error('Storage initialization failed. Please try again or contact support.');
+        return;
+      }
+      
       // 1. Upload image to storage
       const fileExt = imageFile.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
       
       console.log("Uploading file to storage:", filePath);
-      
-      // Create bucket if it doesn't exist
-      const { data: bucketData, error: bucketError } = await supabase.storage.getBucket('artworks');
-      
-      if (bucketError && bucketError.message.includes('does not exist')) {
-        console.log("Bucket doesn't exist, creating it");
-        await supabase.storage.createBucket('artworks', {
-          public: true,
-        });
-      }
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('artworks')

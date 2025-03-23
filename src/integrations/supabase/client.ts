@@ -28,3 +28,74 @@ export const handleSupabaseError = (error: any) => {
     details: error?.details || null
   };
 };
+
+// Helper function to ensure storage bucket exists
+export const ensureStorageBucket = async (bucketName: string) => {
+  try {
+    // Check if bucket exists
+    const { data, error } = await supabase.storage.getBucket(bucketName);
+    
+    // If bucket doesn't exist, create it
+    if (error && error.message.includes('does not exist')) {
+      const { data: newBucket, error: createError } = await supabase.storage
+        .createBucket(bucketName, { public: true });
+        
+      if (createError) {
+        console.error('Error creating bucket:', createError);
+        return false;
+      }
+      
+      console.log(`Bucket ${bucketName} created successfully`);
+      return true;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error ensuring bucket exists:', error);
+    return false;
+  }
+};
+
+// Helper function to create an artist if not exists (should be rare due to trigger)
+export const ensureArtistExists = async (userId: string) => {
+  try {
+    // Check if artist exists
+    const { data: existingArtist, error: checkError } = await supabase
+      .from('artists')
+      .select('*')
+      .eq('id', userId)
+      .single();
+      
+    if (checkError || !existingArtist) {
+      // Get user data
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData.user;
+      
+      if (!user) return false;
+      
+      // Create artist record
+      const { error: createError } = await supabase
+        .from('artists')
+        .insert({
+          id: userId,
+          name: user.user_metadata?.full_name || user.email || 'Artist',
+          bio: 'No bio yet',
+          location: 'Unknown',
+          specialty: 'Digital Art',
+          photo: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || 'Artist')}&background=random`
+        });
+        
+      if (createError) {
+        console.error('Error creating artist:', createError);
+        return false;
+      }
+      
+      return true;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error ensuring artist exists:', error);
+    return false;
+  }
+};
