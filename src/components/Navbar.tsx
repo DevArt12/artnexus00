@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Palette, LogIn, LogOut, User, Upload } from 'lucide-react';
+import { LogIn, LogOut, User, Upload } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { useTheme } from "@/components/theme-provider"
+import Logo from './Logo';
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -57,10 +58,7 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex-1 flex justify-between items-center">
-          <Link to="/" className="flex items-center space-x-2">
-            <Palette className="h-6 w-6 text-artnexus-teal" />
-            <span className="font-bold text-xl">ArtNexus</span>
-          </Link>
+          <Logo size="small" />
           
           {/* Desktop Navigation */}
           {!isMobile && (
@@ -143,7 +141,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 md:hidden">
           <nav className="flex flex-col p-4 space-y-2">

@@ -1,6 +1,6 @@
-
 import { Link } from 'react-router-dom';
 import { Instagram, Twitter, Facebook, Youtube } from 'lucide-react';
+import Logo from './Logo';
 
 const Footer = () => {
   return (
@@ -8,14 +8,7 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-artnexus-purple to-artnexus-teal flex items-center justify-center">
-                <span className="text-white font-bold text-sm">AN</span>
-              </div>
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-artnexus-purple to-artnexus-teal">
-                ArtNexus
-              </span>
-            </Link>
+            <Logo size="medium" />
             <p className="text-sm text-muted-foreground">
               Connecting artists and art lovers in a heartfelt community dedicated to creativity and expression.
             </p>
