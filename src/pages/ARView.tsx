@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -12,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { 
   Camera, Box, RotateCcw, ZoomIn, ZoomOut, Home, Move, 
   Rotate3d, ArrowLeft, ArrowRight, Share2, Save, List,
-  Image, Camera3d, Ruler, Scan, CheckCircle
+  Image, Cube, Ruler, Scan, CheckCircle
 } from 'lucide-react';
 import { toast } from "sonner";
 import { Artwork, Artist, artworks, getArtworkById, getArtistById, getRecommendedArtworks } from '@/data/mockData';
@@ -68,7 +69,27 @@ const ARView = () => {
           
         if (error) throw error;
         if (data) {
-          setArtwork(data);
+          // Convert Supabase data to match our Artwork type
+          const artworkData: Artwork = {
+            id: data.id,
+            title: data.title,
+            description: data.description,
+            image: data.image,
+            artistId: data.artist_id,
+            medium: data.medium,
+            year: data.year,
+            categories: data.category ? [data.category] : [],
+            dimensions: data.aspectratio,
+            price: 0, // Default value
+            sold: false, // Default value
+            featured: false, // Default value
+            createdAt: data.created_at,
+            likes: 0, // Default value
+            comments: [], // Default value
+          };
+          
+          setArtwork(artworkData);
+          
           const artistData = await supabase
             .from('artists')
             .select('*')
@@ -76,7 +97,19 @@ const ARView = () => {
             .single();
           
           if (artistData.data) {
-            setArtist(artistData.data);
+            // Convert Supabase data to match our Artist type
+            const artistDataFormatted: Artist = {
+              id: artistData.data.id,
+              name: artistData.data.name,
+              bio: artistData.data.bio,
+              location: artistData.data.location,
+              profileImage: artistData.data.photo,
+              coverImage: '', // Default value
+              specialty: artistData.data.specialty,
+              followers: 0, // Default value
+              following: 0, // Default value
+            };
+            setArtist(artistDataFormatted);
           }
           return data;
         }
@@ -607,7 +640,7 @@ const ARView = () => {
                       setArViewActive(true);
                       toast.success("Virtual view activated! Use controls to adjust size and position");
                     }}>
-                      <Camera3d className="h-4 w-4 mr-2" />
+                      <Cube className="h-4 w-4 mr-2" />
                       View in Virtual Space
                     </Button>
                     
