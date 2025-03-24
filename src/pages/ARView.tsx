@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -60,6 +59,17 @@ const ARView = () => {
   const { isLoading, error } = useQuery({
     queryKey: ['artwork', id],
     queryFn: async () => {
+      if (!id || id === ':id') {
+        console.log("Invalid artwork ID, using mock data");
+        const mockArtwork = getArtworkById('1');
+        if (mockArtwork) {
+          setArtwork(mockArtwork);
+          const mockArtist = getArtistById(mockArtwork.artistId);
+          if (mockArtist) setArtist(mockArtist);
+        }
+        return mockArtwork;
+      }
+      
       try {
         const { data, error } = await supabase
           .from('artworks')
@@ -69,7 +79,6 @@ const ARView = () => {
           
         if (error) throw error;
         if (data) {
-          // Transform the Supabase data to match the Artwork interface
           const artworkData: Artwork = {
             id: data.id,
             title: data.title,
@@ -82,7 +91,6 @@ const ARView = () => {
             comments: 0,
             categories: data.category ? [data.category] : [],
             dimensions: data.aspectratio,
-            // Since price isn't in the Supabase schema, we'll use a default value
             price: "$0",
             onSale: false
           };
@@ -112,7 +120,7 @@ const ARView = () => {
         }
       } catch (e) {
         console.log("Fallback to mock data", e);
-        const mockArtwork = getArtworkById(id!);
+        const mockArtwork = getArtworkById(id);
         if (mockArtwork) {
           setArtwork(mockArtwork);
           const mockArtist = getArtistById(mockArtwork.artistId);
@@ -120,7 +128,8 @@ const ARView = () => {
         }
         return mockArtwork;
       }
-    }
+    },
+    enabled: !!id && id !== ':id'
   });
   
   useEffect(() => {
@@ -363,6 +372,12 @@ const ARView = () => {
         <Navbar />
         <div className="text-center py-12 flex-grow">
           <p className="text-red-500">Error loading artwork. Please try again.</p>
+          <Button 
+            className="mt-4"
+            onClick={() => navigate('/discover')}
+          >
+            Return to Discover
+          </Button>
         </div>
         <Footer />
       </div>
