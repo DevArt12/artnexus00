@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -81,7 +82,8 @@ const ARView = () => {
             comments: 0,
             categories: data.category ? [data.category] : [],
             dimensions: data.aspectratio,
-            price: data.price ? data.price : "$0",
+            // Since price isn't in the Supabase schema, we'll use a default value
+            price: "$0",
             onSale: false
           };
           
