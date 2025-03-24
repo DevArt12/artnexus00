@@ -78,11 +78,11 @@ const ARView = () => {
             year: data.year.toString(),
             categories: data.category ? [data.category] : [],
             dimensions: data.aspectratio,
-            price: 0,
+            price: 0, // Fix: Must be a number for Artwork type
             sold: false,
             featured: false,
             createdAt: data.created_at,
-            likes: 0,
+            likes: 0, // Fix: Must be a number for Artwork type
             comments: [],
           };
           
@@ -828,4 +828,3 @@ const ARView = () => {
 };
 
 export default ARView;
-
