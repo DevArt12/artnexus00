@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -69,6 +68,7 @@ const ARView = () => {
           
         if (error) throw error;
         if (data) {
+          // Transform the Supabase data to match the Artwork interface
           const artworkData: Artwork = {
             id: data.id,
             title: data.title,
@@ -76,15 +76,13 @@ const ARView = () => {
             image: data.image,
             artistId: data.artist_id,
             medium: data.medium,
-            year: data.year.toString(),
+            createdAt: data.created_at,
+            likes: 0, 
+            comments: 0,
             categories: data.category ? [data.category] : [],
             dimensions: data.aspectratio,
-            price: data.price || "$0", // Fix: Must be a string for Artwork type
-            sold: false,
-            featured: false,
-            createdAt: data.created_at,
-            likes: 0, // Fix: Make sure this is a number
-            comments: 0, // Fix: Make sure this is a number
+            price: data.price ? data.price : "$0",
+            onSale: false
           };
           
           setArtwork(artworkData);
