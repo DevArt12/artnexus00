@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -78,12 +79,12 @@ const ARView = () => {
             year: data.year.toString(),
             categories: data.category ? [data.category] : [],
             dimensions: data.aspectratio,
-            price: 0, // Fix: Must be a number for Artwork type
+            price: data.price || "$0", // Fix: Must be a string for Artwork type
             sold: false,
             featured: false,
             createdAt: data.created_at,
-            likes: 0, // Fix: Must be a number for Artwork type
-            comments: [],
+            likes: 0, // Fix: Make sure this is a number
+            comments: 0, // Fix: Make sure this is a number
           };
           
           setArtwork(artworkData);
