@@ -70,13 +70,22 @@ const Index = () => {
               <h2 className="text-3xl font-bold mb-2">Featured Artwork</h2>
               <p className="text-muted-foreground">Discover the latest and most inspiring creations</p>
             </div>
-            <Link 
-              to="/discover" 
-              className="inline-flex items-center text-artnexus-purple hover:text-artnexus-teal mt-4 md:mt-0"
-            >
-              View All
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Link>
+            <div className="flex items-center gap-4 mt-4 md:mt-0">
+              <Link 
+                to="/collections" 
+                className="inline-flex items-center text-artnexus-teal hover:text-artnexus-purple"
+              >
+                My Collections
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Link>
+              <Link 
+                to="/discover" 
+                className="inline-flex items-center text-artnexus-purple hover:text-artnexus-teal"
+              >
+                View All
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Link>
+            </div>
           </div>
           
           <CategoryFilter 
@@ -131,13 +140,23 @@ const Index = () => {
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
             Join our community of artists and art enthusiasts. Upload your art, connect with others, and start your creative journey today.
           </p>
-          <Button 
-            size="lg" 
-            className="bg-white text-artnexus-purple hover:bg-white/90 px-8"
-            asChild
-          >
-            <Link to="/auth">Join ArtNexus</Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <Button 
+              size="lg" 
+              className="bg-white text-artnexus-purple hover:bg-white/90 px-8"
+              asChild
+            >
+              <Link to="/auth">Join ArtNexus</Link>
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="border-white text-white hover:bg-white/10 px-8"
+              asChild
+            >
+              <Link to="/collections">Manage Collections</Link>
+            </Button>
+          </div>
         </div>
       </section>
       

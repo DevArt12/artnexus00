@@ -22,7 +22,7 @@ import ARView from './pages/ARView';
 import Profile from './pages/Profile';
 import Auth from './pages/Auth';
 import UploadArt from './pages/UploadArt';
-import Collections from './pages/Collections';
+import CollectionsPage from './pages/CollectionsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,7 +57,7 @@ function App() {
               <Route path="/ar-view/:id" element={<ARView />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/collections" element={<Collections />} />
+              <Route path="/collections" element={<CollectionsPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Router>

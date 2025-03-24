@@ -99,3 +99,87 @@ export const ensureArtistExists = async (userId: string) => {
     return false;
   }
 };
+
+// Helper function for managing collections
+export const collectionsService = {
+  // Get all collections for the current user
+  async getUserCollections() {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session.session) {
+      return { data: null, error: { message: 'User not authenticated' } };
+    }
+    
+    return await supabase
+      .from('collections')
+      .select('*, collection_items(*, artworks(*))')
+      .order('created_at', { ascending: false });
+  },
+  
+  // Create a new collection
+  async createCollection(name: string, description: string = '', coverImage: string = '') {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session.session) {
+      return { data: null, error: { message: 'User not authenticated' } };
+    }
+    
+    return await supabase
+      .from('collections')
+      .insert({
+        name,
+        description,
+        cover_image: coverImage,
+        user_id: session.session.user.id
+      })
+      .select()
+      .single();
+  },
+  
+  // Update a collection
+  async updateCollection(id: string, updates: { name?: string, description?: string, cover_image?: string }) {
+    return await supabase
+      .from('collections')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+  },
+  
+  // Delete a collection
+  async deleteCollection(id: string) {
+    return await supabase
+      .from('collections')
+      .delete()
+      .eq('id', id);
+  },
+  
+  // Add artwork to collection
+  async addArtworkToCollection(collectionId: string, artworkId: string) {
+    return await supabase
+      .from('collection_items')
+      .insert({
+        collection_id: collectionId,
+        artwork_id: artworkId
+      })
+      .select();
+  },
+  
+  // Remove artwork from collection
+  async removeArtworkFromCollection(collectionId: string, artworkId: string) {
+    return await supabase
+      .from('collection_items')
+      .delete()
+      .match({
+        collection_id: collectionId,
+        artwork_id: artworkId
+      });
+  },
+  
+  // Get artwork details for a collection
+  async getCollectionArtworks(collectionId: string) {
+    return await supabase
+      .from('collection_items')
+      .select('*, artworks(*)')
+      .eq('collection_id', collectionId);
+  }
+};
+
