@@ -55,7 +55,7 @@ const Index = () => {
                 className="border-white text-white hover:bg-white/10 text-lg px-8 py-6"
                 asChild
               >
-                <Link to="/sign-up">Join ArtNexus</Link>
+                <Link to="/auth">Join ArtNexus</Link>
               </Button>
             </div>
           </div>
@@ -136,7 +136,7 @@ const Index = () => {
             className="bg-white text-artnexus-purple hover:bg-white/90 px-8"
             asChild
           >
-            <Link to="/sign-up">Join ArtNexus</Link>
+            <Link to="/auth">Join ArtNexus</Link>
           </Button>
         </div>
       </section>
