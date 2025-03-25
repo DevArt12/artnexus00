@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -5,24 +6,20 @@ import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
-  Camera, Box, RotateCcw, ZoomIn, ZoomOut, Home, Move, 
-  Rotate3d, ArrowLeft, ArrowRight, Share2, Save, List,
-  Image, Monitor, Ruler, Scan, CheckCircle, Cube
+  Camera, Box, Home, Scan, CheckCircle, Cube,
+  Share2, Save, List, Image, Monitor, Ruler
 } from 'lucide-react';
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Artwork, Artist, artworks, getArtworkById, getArtistById, getRecommendedArtworks } from '@/data/mockData';
-
-interface ARMeasurement {
-  width: number;
-  height: number;
-  units: 'cm' | 'inches' | 'feet';
-}
+import ARViewControls from '@/components/ar/ARViewControls';
+import ArtworkMeasurements, { ARMeasurement } from '@/components/ar/ArtworkMeasurements';
+import ARModelSelector, { MODEL_OPTIONS } from '@/components/ar/ARModelSelector';
+import EnvironmentSettings from '@/components/ar/EnvironmentSettings';
 
 interface Collection {
   id: string;
@@ -32,27 +29,6 @@ interface Collection {
   artworks: string[];
   createdAt: string;
 }
-
-const MODEL_OPTIONS = [
-  { 
-    id: '1', 
-    name: 'Sculpture', 
-    src: 'https://sketchfab.com/models/213f68e23e8a4807a8edc33a779fcc0c/embed',
-    thumbnail: 'https://images.unsplash.com/photo-1576020799627-aeac74d58d0d?auto=format&fit=crop&w=150&q=80'
-  },
-  { 
-    id: '2', 
-    name: 'Abstract Art', 
-    src: 'https://sketchfab.com/models/a23f1fe3b9714fc9a1f16e6b7cc3115d/embed',
-    thumbnail: 'https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?auto=format&fit=crop&w=150&q=80'
-  },
-  { 
-    id: '3', 
-    name: 'Vase', 
-    src: 'https://sketchfab.com/models/9876254ce92e48ce90292d8d1af265a7/embed',
-    thumbnail: 'https://images.unsplash.com/photo-1554188572-9f21c11c0a30?auto=format&fit=crop&w=150&q=80'
-  }
-];
 
 const ARView = () => {
   const { id } = useParams<{ id: string }>();
@@ -96,52 +72,58 @@ const ARView = () => {
       }
       
       try {
-        const { data, error } = await supabase
+        // Fetch artwork data
+        const { data: artworkData, error: artworkError } = await supabase
           .from('artworks')
           .select('*')
           .eq('id', id)
           .single();
           
-        if (error) throw error;
-        if (data) {
-          const artworkData: Artwork = {
-            id: data.id,
-            title: data.title,
-            description: data.description,
-            image: data.image,
-            artistId: data.artist_id,
-            medium: data.medium,
-            createdAt: data.created_at,
+        if (artworkError) throw artworkError;
+        
+        if (artworkData) {
+          const artworkFormatted: Artwork = {
+            id: artworkData.id,
+            title: artworkData.title,
+            description: artworkData.description,
+            image: artworkData.image,
+            artistId: artworkData.artist_id,
+            medium: artworkData.medium,
+            createdAt: artworkData.created_at,
             likes: 0, 
             comments: 0,
-            categories: data.category ? [data.category] : [],
-            dimensions: data.aspectratio,
+            categories: artworkData.category ? [artworkData.category] : [],
+            dimensions: artworkData.aspectratio,
             price: "$0",
             onSale: false
           };
           
-          setArtwork(artworkData);
+          setArtwork(artworkFormatted);
           
-          const artistData = await supabase
+          // Fetch artist data
+          const { data: artistData, error: artistError } = await supabase
             .from('artists')
             .select('*')
-            .eq('id', data.artist_id)
+            .eq('id', artworkData.artist_id)
             .single();
           
-          if (artistData.data) {
-            const artistDataFormatted: Artist = {
-              id: artistData.data.id,
-              name: artistData.data.name,
-              bio: artistData.data.bio,
-              location: artistData.data.location,
-              profileImage: artistData.data.photo,
+          if (artistError) {
+            console.error("Error fetching artist:", artistError);
+          } else if (artistData) {
+            const artistFormatted: Artist = {
+              id: artistData.id,
+              name: artistData.name,
+              bio: artistData.bio,
+              location: artistData.location,
+              profileImage: artistData.photo,
               coverImage: '',
               followers: 0,
               following: 0,
             };
-            setArtist(artistDataFormatted);
+            setArtist(artistFormatted);
           }
-          return data;
+          
+          return artworkFormatted;
         }
       } catch (e) {
         console.log("Fallback to mock data", e);
@@ -154,7 +136,7 @@ const ARView = () => {
         return mockArtwork;
       }
     },
-    enabled: !!id && id !== ':id'
+    enabled: !!id
   });
   
   useEffect(() => {
@@ -471,92 +453,22 @@ const ARView = () => {
                     ></div>
                   )}
                   
-                  <div className="absolute top-4 right-4 flex flex-wrap gap-2">
-                    <Button size="sm" variant="secondary" onClick={handleZoomIn}>
-                      <ZoomIn className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="secondary" onClick={handleZoomOut}>
-                      <ZoomOut className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="secondary" onClick={handleRotateLeft}>
-                      <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="secondary" onClick={handleRotateRight}>
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="secondary" onClick={handleReset}>
-                      <RotateCcw className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <Button size="sm" variant="secondary" onClick={takeScreenshot}>
-                      <Camera className="h-4 w-4 mr-2" />
-                      Take Photo
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="secondary"
-                      onClick={() => setShowCollectionDialog(true)}
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      Save
-                    </Button>
-                  </div>
+                  <ARViewControls
+                    onZoomIn={handleZoomIn}
+                    onZoomOut={handleZoomOut}
+                    onRotateLeft={handleRotateLeft}
+                    onRotateRight={handleRotateRight}
+                    onReset={handleReset}
+                    onTakeScreenshot={takeScreenshot}
+                    onSave={() => setShowCollectionDialog(true)}
+                  />
                   
                   {!view3DMode && (
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <div className="bg-black/60 p-3 rounded-lg">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-white text-sm">Artwork Measurements:</span>
-                          <span className="text-white text-sm">
-                            {artworkMeasurements.width} x {artworkMeasurements.height} {artworkMeasurements.units}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <span className="text-white text-xs block mb-1">Width</span>
-                            <Slider 
-                              value={[artworkMeasurements.width]} 
-                              min={20} 
-                              max={200} 
-                              step={1}
-                              onValueChange={(value) => setArtworkMeasurements(prev => ({...prev, width: value[0]}))}
-                              className="mb-2"
-                            />
-                          </div>
-                          <div>
-                            <span className="text-white text-xs block mb-1">Height</span>
-                            <Slider 
-                              value={[artworkMeasurements.height]} 
-                              min={20} 
-                              max={200} 
-                              step={1}
-                              onValueChange={(value) => setArtworkMeasurements(prev => ({...prev, height: value[0]}))}
-                              className="mb-2"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex space-x-3 justify-center mt-2">
-                          <Button size="sm" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20" onClick={() => handleMove(0, -10)}>
-                            <Move className="h-4 w-4 mr-1" />
-                            Up
-                          </Button>
-                          <Button size="sm" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20" onClick={() => handleMove(0, 10)}>
-                            <Move className="h-4 w-4 mr-1" />
-                            Down
-                          </Button>
-                          <Button size="sm" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20" onClick={() => handleMove(-10, 0)}>
-                            <Move className="h-4 w-4 mr-1" />
-                            Left
-                          </Button>
-                          <Button size="sm" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20" onClick={() => handleMove(10, 0)}>
-                            <Move className="h-4 w-4 mr-1" />
-                            Right
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+                    <ArtworkMeasurements
+                      measurements={artworkMeasurements}
+                      onMeasurementsChange={setArtworkMeasurements}
+                      onMove={handleMove}
+                    />
                   )}
                 </div>
               ) : (
@@ -570,104 +482,20 @@ const ARView = () => {
               )}
               
               {arViewActive && !view3DMode && (
-                <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
-                  <h3 className="text-lg font-medium mb-3">Environment Settings</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="text-sm font-medium mb-2">Room Type</h4>
-                      <div className="flex flex-wrap gap-2">
-                        <Button 
-                          size="sm" 
-                          variant={roomEnvironment === 'living' ? 'default' : 'outline'}
-                          onClick={() => handleChangeEnvironment('living')}
-                        >
-                          Living Room
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant={roomEnvironment === 'bedroom' ? 'default' : 'outline'}
-                          onClick={() => handleChangeEnvironment('bedroom')}
-                        >
-                          Bedroom
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant={roomEnvironment === 'office' ? 'default' : 'outline'}
-                          onClick={() => handleChangeEnvironment('office')}
-                        >
-                          Office
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant={roomEnvironment === 'kitchen' ? 'default' : 'outline'}
-                          onClick={() => handleChangeEnvironment('kitchen')}
-                        >
-                          Kitchen
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h4 className="text-sm font-medium mb-2">Lighting</h4>
-                      <div className="flex flex-wrap gap-2">
-                        <Button 
-                          size="sm" 
-                          variant={lightingCondition === 'daylight' ? 'default' : 'outline'}
-                          onClick={() => handleChangeLighting('daylight')}
-                        >
-                          Daylight
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant={lightingCondition === 'evening' ? 'default' : 'outline'}
-                          onClick={() => handleChangeLighting('evening')}
-                        >
-                          Evening
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant={lightingCondition === 'dim' ? 'default' : 'outline'}
-                          onClick={() => handleChangeLighting('dim')}
-                        >
-                          Dim
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant={lightingCondition === 'bright' ? 'default' : 'outline'}
-                          onClick={() => handleChangeLighting('bright')}
-                        >
-                          Bright
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <EnvironmentSettings
+                  roomEnvironment={roomEnvironment}
+                  lightingCondition={lightingCondition}
+                  onChangeEnvironment={handleChangeEnvironment}
+                  onChangeLighting={handleChangeLighting}
+                />
               )}
               
               {arViewActive && view3DMode && (
-                <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
-                  <h3 className="text-lg font-medium mb-3">3D Model Options</h3>
-                  <div className="grid grid-cols-3 gap-3">
-                    {MODEL_OPTIONS.map(model => (
-                      <div 
-                        key={model.id}
-                        className={`border rounded-lg overflow-hidden cursor-pointer transition-all ${selectedModel.id === model.id ? 'ring-2 ring-primary' : 'hover:border-primary'}`}
-                        onClick={() => changeModel(model)}
-                      >
-                        <div className="aspect-square">
-                          <img 
-                            src={model.thumbnail} 
-                            alt={model.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="p-2 text-center">
-                          <p className="text-sm font-medium">{model.name}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <ARModelSelector
+                  models={MODEL_OPTIONS}
+                  selectedModel={selectedModel}
+                  onModelChange={changeModel}
+                />
               )}
             </div>
             
@@ -833,7 +661,7 @@ const ARView = () => {
               
               <div className="flex flex-col items-center text-center">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Move className="h-8 w-8 text-primary" />
+                  <Home className="h-8 w-8 text-primary" />
                 </div>
                 <h3 className="font-medium mb-2">Steady Movement</h3>
                 <p className="text-sm text-muted-foreground">Move your device slowly for accurate surface detection</p>
@@ -841,10 +669,10 @@ const ARView = () => {
               
               <div className="flex flex-col items-center text-center">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Rotate3d className="h-8 w-8 text-primary" />
+                  <Cube className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="font-medium mb-2">Multiple Angles</h3>
-                <p className="text-sm text-muted-foreground">View artworks from different positions to see all details</p>
+                <h3 className="font-medium mb-2">3D Models</h3>
+                <p className="text-sm text-muted-foreground">Try our Sketchfab 3D model integrations for a richer experience</p>
               </div>
             </div>
           </div>
