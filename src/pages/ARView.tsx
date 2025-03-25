@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,9 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { 
   Camera, Box, RotateCcw, ZoomIn, ZoomOut, Home, Move, 
   Rotate3d, ArrowLeft, ArrowRight, Share2, Save, List,
-  Image, Monitor, Ruler, Scan, CheckCircle
+  Image, Monitor, Ruler, Scan, CheckCircle, Cube
 } from 'lucide-react';
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Artwork, Artist, artworks, getArtworkById, getArtistById, getRecommendedArtworks } from '@/data/mockData';
 
 interface ARMeasurement {
@@ -31,6 +32,27 @@ interface Collection {
   artworks: string[];
   createdAt: string;
 }
+
+const MODEL_OPTIONS = [
+  { 
+    id: '1', 
+    name: 'Sculpture', 
+    src: 'https://sketchfab.com/models/213f68e23e8a4807a8edc33a779fcc0c/embed',
+    thumbnail: 'https://images.unsplash.com/photo-1576020799627-aeac74d58d0d?auto=format&fit=crop&w=150&q=80'
+  },
+  { 
+    id: '2', 
+    name: 'Abstract Art', 
+    src: 'https://sketchfab.com/models/a23f1fe3b9714fc9a1f16e6b7cc3115d/embed',
+    thumbnail: 'https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?auto=format&fit=crop&w=150&q=80'
+  },
+  { 
+    id: '3', 
+    name: 'Vase', 
+    src: 'https://sketchfab.com/models/9876254ce92e48ce90292d8d1af265a7/embed',
+    thumbnail: 'https://images.unsplash.com/photo-1554188572-9f21c11c0a30?auto=format&fit=crop&w=150&q=80'
+  }
+];
 
 const ARView = () => {
   const { id } = useParams<{ id: string }>();
@@ -55,6 +77,9 @@ const ARView = () => {
   const [wallColor, setWallColor] = useState('#f5f5f5');
   const [roomEnvironment, setRoomEnvironment] = useState('living');
   const [lightingCondition, setLightingCondition] = useState('daylight');
+  const [view3DMode, setView3DMode] = useState(false);
+  const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[0]);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   
   const { isLoading, error } = useQuery({
     queryKey: ['artwork', id],
@@ -200,6 +225,22 @@ const ARView = () => {
     } else {
       toast.error("AR view is not supported on your device");
     }
+  };
+  
+  const toggle3DView = (value: boolean) => {
+    setView3DMode(value);
+    setArViewActive(true);
+    
+    if (value) {
+      toast.success("3D model view activated!");
+    } else {
+      toast.success("2D artwork view activated");
+    }
+  };
+  
+  const changeModel = (model: typeof MODEL_OPTIONS[0]) => {
+    setSelectedModel(model);
+    toast.success(`Selected 3D model: ${model.name}`);
   };
   
   const handleWallScan = () => {
@@ -407,48 +448,63 @@ const ARView = () => {
             <div className="lg:col-span-2">
               {arViewActive ? (
                 <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
-                  <div 
-                    className="w-full h-full bg-center bg-no-repeat flex items-center justify-center transition-all"
-                    style={{ 
-                      backgroundImage: `url(${artwork.image})`,
-                      transform: `scale(${zoomLevel}) rotate(${rotation}deg) translate(${position.x}px, ${position.y}px)`,
-                      backgroundColor: wallColor,
-                      backgroundSize: 'contain'
-                    }}
-                  >
-                    <div className="absolute top-4 right-4 flex flex-wrap gap-2">
-                      <Button size="sm" variant="secondary" onClick={handleZoomIn}>
-                        <ZoomIn className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="secondary" onClick={handleZoomOut}>
-                        <ZoomOut className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="secondary" onClick={handleRotateLeft}>
-                        <ArrowLeft className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="secondary" onClick={handleRotateRight}>
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="secondary" onClick={handleReset}>
-                        <RotateCcw className="h-4 w-4" />
-                      </Button>
+                  {view3DMode ? (
+                    <div className="w-full h-full">
+                      <iframe
+                        ref={iframeRef}
+                        title={`3D Model - ${selectedModel.name}`}
+                        className="w-full h-full"
+                        src={`${selectedModel.src}?autostart=1&preload=1&ui_controls=1&ui_infos=1&ui_inspector=1&ui_stop=0&ui_watermark=0&ui_watermark_link=0`}
+                        allow="autoplay; fullscreen; xr-spatial-tracking"
+                        allowFullScreen
+                      ></iframe>
                     </div>
-                    
-                    <div className="absolute top-4 left-4 flex gap-2">
-                      <Button size="sm" variant="secondary" onClick={takeScreenshot}>
-                        <Camera className="h-4 w-4 mr-2" />
-                        Take Photo
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="secondary"
-                        onClick={() => setShowCollectionDialog(true)}
-                      >
-                        <Save className="h-4 w-4 mr-2" />
-                        Save
-                      </Button>
-                    </div>
-                    
+                  ) : (
+                    <div 
+                      className="w-full h-full bg-center bg-no-repeat flex items-center justify-center transition-all"
+                      style={{ 
+                        backgroundImage: `url(${artwork.image})`,
+                        transform: `scale(${zoomLevel}) rotate(${rotation}deg) translate(${position.x}px, ${position.y}px)`,
+                        backgroundColor: wallColor,
+                        backgroundSize: 'contain'
+                      }}
+                    ></div>
+                  )}
+                  
+                  <div className="absolute top-4 right-4 flex flex-wrap gap-2">
+                    <Button size="sm" variant="secondary" onClick={handleZoomIn}>
+                      <ZoomIn className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={handleZoomOut}>
+                      <ZoomOut className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={handleRotateLeft}>
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={handleRotateRight}>
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={handleReset}>
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    <Button size="sm" variant="secondary" onClick={takeScreenshot}>
+                      <Camera className="h-4 w-4 mr-2" />
+                      Take Photo
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="secondary"
+                      onClick={() => setShowCollectionDialog(true)}
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      Save
+                    </Button>
+                  </div>
+                  
+                  {!view3DMode && (
                     <div className="absolute bottom-4 left-4 right-4">
                       <div className="bg-black/60 p-3 rounded-lg">
                         <div className="flex justify-between items-center mb-2">
@@ -501,7 +557,7 @@ const ARView = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               ) : (
                 <div className="relative bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden aspect-video flex items-center justify-center">
@@ -513,7 +569,7 @@ const ARView = () => {
                 </div>
               )}
               
-              {arViewActive && (
+              {arViewActive && !view3DMode && (
                 <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
                   <h3 className="text-lg font-medium mb-3">Environment Settings</h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -587,11 +643,51 @@ const ARView = () => {
                   </div>
                 </div>
               )}
+              
+              {arViewActive && view3DMode && (
+                <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
+                  <h3 className="text-lg font-medium mb-3">3D Model Options</h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    {MODEL_OPTIONS.map(model => (
+                      <div 
+                        key={model.id}
+                        className={`border rounded-lg overflow-hidden cursor-pointer transition-all ${selectedModel.id === model.id ? 'ring-2 ring-primary' : 'hover:border-primary'}`}
+                        onClick={() => changeModel(model)}
+                      >
+                        <div className="aspect-square">
+                          <img 
+                            src={model.thumbnail} 
+                            alt={model.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="p-2 text-center">
+                          <p className="text-sm font-medium">{model.name}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             
             <div>
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold mb-4">{artwork.title}</h2>
+                
+                {artist && (
+                  <div className="flex items-center gap-3 mb-4">
+                    <Avatar>
+                      <AvatarImage src={artist.profileImage} alt={artist.name} />
+                      <AvatarFallback>{artist.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{artist.name}</p>
+                      <p className="text-sm text-muted-foreground">{artist.location}</p>
+                    </div>
+                  </div>
+                )}
+                
                 <p className="text-muted-foreground mb-6">{artwork.description}</p>
                 
                 <Tabs defaultValue="ar">
@@ -613,14 +709,17 @@ const ARView = () => {
                     <div className="space-y-3">
                       <Button
                         className="w-full"
-                        onClick={handleActivateAR}
-                        disabled={!isARSupported || arViewActive}
+                        onClick={() => {
+                          handleActivateAR();
+                          toggle3DView(false);
+                        }}
+                        disabled={!isARSupported || (arViewActive && !view3DMode)}
                       >
                         <Camera className="h-4 w-4 mr-2" />
-                        {arViewActive ? 'AR View Active' : 'Start AR View'}
+                        {arViewActive && !view3DMode ? 'AR View Active' : 'Start AR View'}
                       </Button>
                       
-                      {arViewActive && (
+                      {arViewActive && !view3DMode && (
                         <Button 
                           className="w-full" 
                           variant="outline"
@@ -646,35 +745,51 @@ const ARView = () => {
                   
                   <TabsContent value="3d">
                     <p className="text-sm text-muted-foreground mb-4">
-                      Explore this artwork in a virtual environment to see how it would look on your wall.
+                      Explore artworks as 3D models or in a virtual environment.
                     </p>
-                    <Button className="w-full" variant={arViewActive ? "outline" : "default"} onClick={() => {
-                      setArViewActive(true);
-                      toast.success("Virtual view activated! Use controls to adjust size and position");
-                    }}>
-                      <Monitor className="h-4 w-4 mr-2" />
-                      View in Virtual Space
-                    </Button>
+                    <div className="space-y-3">
+                      <Button 
+                        className="w-full" 
+                        onClick={() => {
+                          setArViewActive(true);
+                          toggle3DView(false);
+                          toast.success("Virtual view activated! Use controls to adjust size and position");
+                        }}
+                      >
+                        <Monitor className="h-4 w-4 mr-2" />
+                        2D Virtual View
+                      </Button>
+                      
+                      <Button 
+                        className="w-full" 
+                        variant={view3DMode ? "default" : "outline"}
+                        onClick={() => {
+                          setArViewActive(true);
+                          toggle3DView(true);
+                        }}
+                      >
+                        <Cube className="h-4 w-4 mr-2" />
+                        3D Model View
+                      </Button>
+                    </div>
                     
-                    {arViewActive && (
-                      <div className="mt-4 space-y-2">
-                        <p className="text-sm font-medium">Virtual Room Features:</p>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          <li className="flex items-center">
-                            <CheckCircle className="h-3 w-3 mr-2 text-green-500" />
-                            Adjust artwork size and position
-                          </li>
-                          <li className="flex items-center">
-                            <CheckCircle className="h-3 w-3 mr-2 text-green-500" />
-                            Change wall color and room environment
-                          </li>
-                          <li className="flex items-center">
-                            <CheckCircle className="h-3 w-3 mr-2 text-green-500" />
-                            Test different lighting conditions
-                          </li>
-                        </ul>
-                      </div>
-                    )}
+                    <div className="mt-4 space-y-2">
+                      <p className="text-sm font-medium">Virtual Features:</p>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li className="flex items-center">
+                          <CheckCircle className="h-3 w-3 mr-2 text-green-500" />
+                          Interact with 3D models
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle className="h-3 w-3 mr-2 text-green-500" />
+                          Adjust artwork size and position
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle className="h-3 w-3 mr-2 text-green-500" />
+                          Test different room environments
+                        </li>
+                      </ul>
+                    </div>
                   </TabsContent>
                 </Tabs>
                 
