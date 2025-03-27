@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -10,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
-  Camera, Box, Home, Scan, CheckCircle, Cube,
+  Camera, Box, Home, Scan, CheckCircle,
   Share2, Save, List, Image, Monitor, Ruler
 } from 'lucide-react';
 import { toast } from "sonner";
@@ -116,7 +115,7 @@ const ARView = () => {
               bio: artistData.bio || "",
               location: artistData.location || "Unknown",
               profileImage: artistData.photo || "https://randomuser.me/api/portraits/lego/1.jpg",
-              coverImage: artistData.cover_image || "https://images.unsplash.com/photo-1579548122080-c35fd6820ecb?q=80&w=2070",
+              coverImage: "https://images.unsplash.com/photo-1579548122080-c35fd6820ecb?q=80&w=2070",
               followers: 0,
               following: 0,
             };
@@ -792,4 +791,3 @@ const ARView = () => {
 };
 
 export default ARView;
-
