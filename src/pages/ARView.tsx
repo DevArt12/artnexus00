@@ -71,7 +71,6 @@ const ARView = () => {
       }
       
       try {
-        // Fetch artwork data
         const { data: artworkData, error: artworkError } = await supabase
           .from('artworks')
           .select('*')
@@ -99,7 +98,6 @@ const ARView = () => {
           
           setArtwork(artworkFormatted);
           
-          // Fetch artist data
           const { data: artistData, error: artistError } = await supabase
             .from('artists')
             .select('*')
@@ -121,7 +119,6 @@ const ARView = () => {
             };
             setArtist(artistFormatted);
           } else {
-            // If no artist data from Supabase, try to get from mock data
             console.log("No artist data from Supabase, trying mock data");
             const mockArtist = getArtistById(artworkFormatted.artistId);
             if (mockArtist) setArtist(mockArtist);
@@ -600,7 +597,7 @@ const ARView = () => {
                           toggle3DView(true);
                         }}
                       >
-                        <Cube className="h-4 w-4 mr-2" />
+                        <Box className="h-4 w-4 mr-2" />
                         3D Model View
                       </Button>
                     </div>
@@ -673,7 +670,7 @@ const ARView = () => {
               
               <div className="flex flex-col items-center text-center">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Cube className="h-8 w-8 text-primary" />
+                  <Box className="h-8 w-8 text-primary" />
                 </div>
                 <h3 className="font-medium mb-2">3D Models</h3>
                 <p className="text-sm text-muted-foreground">Try our Sketchfab 3D model integrations for a richer experience</p>
