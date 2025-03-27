@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Artwork, Artist, artworks, getArtworkById, getArtistById, getRecommendedArtworks } from '@/data/mockData';
+import { Artwork, Artist, getArtworkById, getArtistById, getRecommendedArtworks } from '@/data/mockData';
 import ARViewControls from '@/components/ar/ARViewControls';
 import ArtworkMeasurements, { ARMeasurement } from '@/components/ar/ArtworkMeasurements';
 import ARModelSelector, { MODEL_OPTIONS } from '@/components/ar/ARModelSelector';
@@ -113,14 +113,19 @@ const ARView = () => {
             const artistFormatted: Artist = {
               id: artistData.id,
               name: artistData.name,
-              bio: artistData.bio,
-              location: artistData.location,
-              profileImage: artistData.photo,
-              coverImage: '',
+              bio: artistData.bio || "",
+              location: artistData.location || "Unknown",
+              profileImage: artistData.photo || "https://randomuser.me/api/portraits/lego/1.jpg",
+              coverImage: artistData.cover_image || "https://images.unsplash.com/photo-1579548122080-c35fd6820ecb?q=80&w=2070",
               followers: 0,
               following: 0,
             };
             setArtist(artistFormatted);
+          } else {
+            // If no artist data from Supabase, try to get from mock data
+            console.log("No artist data from Supabase, trying mock data");
+            const mockArtist = getArtistById(artworkFormatted.artistId);
+            if (mockArtist) setArtist(mockArtist);
           }
           
           return artworkFormatted;
@@ -507,11 +512,11 @@ const ARView = () => {
                   <div className="flex items-center gap-3 mb-4">
                     <Avatar>
                       <AvatarImage src={artist.profileImage} alt={artist.name} />
-                      <AvatarFallback>{artist.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback>{artist.name?.substring(0, 2).toUpperCase() || "AR"}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{artist.name}</p>
-                      <p className="text-sm text-muted-foreground">{artist.location}</p>
+                      <p className="font-medium">{artist.name || "Unknown Artist"}</p>
+                      <p className="text-sm text-muted-foreground">{artist.location || "Unknown Location"}</p>
                     </div>
                   </div>
                 )}
@@ -787,3 +792,4 @@ const ARView = () => {
 };
 
 export default ARView;
+

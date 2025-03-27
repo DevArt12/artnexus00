@@ -46,14 +46,29 @@ export const MODEL_OPTIONS: ARModel[] = [
     name: 'Ceramic Pot',
     src: 'https://sketchfab.com/models/e4e9a0e7bfe24ff787516a28b0a10c53/embed',
     thumbnail: 'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=150&q=80'
+  },
+  {
+    id: '6',
+    name: 'Art Installation',
+    src: 'https://sketchfab.com/models/5c9cc5d76d3d4a6e89fd0c4ce55ba1db/embed',
+    thumbnail: 'https://images.unsplash.com/photo-1561839561-b13ccb4a67e5?auto=format&fit=crop&w=150&q=80'
+  },
+  {
+    id: '7',
+    name: 'Contemporary Art',
+    src: 'https://sketchfab.com/models/1e7e663d27974c7bb1418d7fa2526da0/embed',
+    thumbnail: 'https://images.unsplash.com/photo-1554188248-986adbb73be4?auto=format&fit=crop&w=150&q=80'
   }
 ];
 
 const ARModelSelector = ({ models, selectedModel, onModelChange }: ARModelSelectorProps) => {
   return (
     <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
-      <h3 className="text-lg font-medium mb-3">3D Model Options</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <h3 className="text-lg font-medium mb-3 flex items-center">
+        <Cube className="h-4 w-4 mr-2 text-primary" />
+        3D Model Options
+      </h3>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         {models.map(model => (
           <div 
             key={model.id}
