@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Box, Package } from 'lucide-react';
+import { Box, Package, Info } from 'lucide-react';
 
 export interface ARModel {
   id: string;
@@ -70,12 +70,26 @@ export const MODEL_OPTIONS: ARModel[] = [
 ];
 
 const ARModelSelector = ({ models, selectedModel, onModelChange }: ARModelSelectorProps) => {
+  const [showDetails, setShowDetails] = useState(false);
+  
   return (
     <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
-      <h3 className="text-lg font-medium mb-3 flex items-center">
-        <Package className="h-4 w-4 mr-2 text-primary" />
-        3D Model Gallery
-      </h3>
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-lg font-medium flex items-center">
+          <Package className="h-4 w-4 mr-2 text-primary" />
+          3D Model Gallery
+        </h3>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setShowDetails(!showDetails)}
+          className="text-xs flex items-center"
+        >
+          <Info className="h-3 w-3 mr-1" />
+          {showDetails ? 'Hide details' : 'Show details'}
+        </Button>
+      </div>
+      
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {models.map(model => (
           <div 
@@ -93,6 +107,12 @@ const ARModelSelector = ({ models, selectedModel, onModelChange }: ARModelSelect
             <div className="p-2">
               <p className="text-sm font-medium">{model.name}</p>
               <p className="text-xs text-muted-foreground truncate">{model.creator}</p>
+              
+              {showDetails && selectedModel.id === model.id && (
+                <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                  <p className="text-xs text-muted-foreground">{model.description}</p>
+                </div>
+              )}
             </div>
           </div>
         ))}

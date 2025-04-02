@@ -3,7 +3,8 @@ import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { 
   ArrowUp, ArrowDown, ArrowLeft, 
-  ArrowRight, Ruler, SlidersHorizontal 
+  ArrowRight, Ruler, SlidersHorizontal,
+  RotateCw, RefreshCw
 } from 'lucide-react';
 
 export interface ARMeasurement {
@@ -16,12 +17,14 @@ interface ArtworkMeasurementsProps {
   measurements: ARMeasurement;
   onMeasurementsChange: (measurements: ARMeasurement) => void;
   onMove: (dx: number, dy: number) => void;
+  onReset?: () => void;
 }
 
 const ArtworkMeasurements = ({ 
   measurements, 
   onMeasurementsChange,
-  onMove
+  onMove,
+  onReset
 }: ArtworkMeasurementsProps) => {
   const handleUnitChange = (unit: 'cm' | 'inches' | 'feet') => {
     let newWidth = measurements.width;
@@ -55,6 +58,20 @@ const ArtworkMeasurements = ({
     });
   };
   
+  const resetMeasurements = () => {
+    // Reset to default measurements
+    onMeasurementsChange({
+      width: 100,
+      height: 80,
+      units: 'cm'
+    });
+    
+    // If external reset function provided, call it too
+    if (onReset) {
+      onReset();
+    }
+  };
+  
   return (
     <div className="absolute bottom-4 left-4 right-4">
       <div className="bg-black/60 backdrop-blur-sm p-3 rounded-lg">
@@ -63,9 +80,20 @@ const ArtworkMeasurements = ({
             <Ruler className="h-4 w-4 mr-1" />
             Artwork Dimensions
           </span>
-          <span className="text-white text-sm font-medium">
-            {measurements.width} × {measurements.height} {measurements.units}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-white text-sm font-medium">
+              {measurements.width} × {measurements.height} {measurements.units}
+            </span>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="h-6 w-6 p-0 rounded-full text-white/70 hover:text-white hover:bg-white/10"
+              onClick={resetMeasurements}
+              title="Reset dimensions"
+            >
+              <RefreshCw className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
         
         <div className="grid grid-cols-2 gap-4 mb-3">
