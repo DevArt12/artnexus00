@@ -224,6 +224,16 @@ const ARView = () => {
   const changeModel = (model: typeof MODEL_OPTIONS[0]) => {
     setSelectedModel(model);
     toast.success(`Selected 3D model: ${model.name}`);
+    
+    if (iframeRef.current) {
+      const currentSrc = iframeRef.current.src;
+      iframeRef.current.src = '';
+      setTimeout(() => {
+        if (iframeRef.current) {
+          iframeRef.current.src = model.src;
+        }
+      }, 100);
+    }
   };
   
   const handleWallScan = () => {
@@ -437,9 +447,12 @@ const ARView = () => {
                         ref={iframeRef}
                         title={`3D Model - ${selectedModel.name}`}
                         className="w-full h-full"
-                        src={`${selectedModel.src}?autostart=1&preload=1&ui_controls=1&ui_infos=1&ui_inspector=1&ui_stop=0&ui_watermark=0&ui_watermark_link=0`}
+                        src={selectedModel.src}
                         allow="autoplay; fullscreen; xr-spatial-tracking"
                         allowFullScreen
+                        loading="eager"
+                        onLoad={() => console.log("3D model iframe loaded")}
+                        onError={() => console.error("3D model iframe failed to load")}
                       ></iframe>
                     </div>
                   ) : (

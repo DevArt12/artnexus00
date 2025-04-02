@@ -20,43 +20,43 @@ export const MODEL_OPTIONS: ARModel[] = [
   { 
     id: '1', 
     name: 'Sculpture', 
-    src: 'https://sketchfab.com/models/213f68e23e8a4807a8edc33a779fcc0c/embed',
+    src: 'https://sketchfab.com/models/213f68e23e8a4807a8edc33a779fcc0c/embed?autospin=1&autostart=1&ui_hint=0',
     thumbnail: 'https://images.unsplash.com/photo-1576020799627-aeac74d58d0d?auto=format&fit=crop&w=150&q=80'
   },
   { 
     id: '2', 
     name: 'Abstract Art', 
-    src: 'https://sketchfab.com/models/a23f1fe3b9714fc9a1f16e6b7cc3115d/embed',
+    src: 'https://sketchfab.com/models/a23f1fe3b9714fc9a1f16e6b7cc3115d/embed?autospin=1&autostart=1&ui_hint=0',
     thumbnail: 'https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?auto=format&fit=crop&w=150&q=80'
   },
   { 
     id: '3', 
     name: 'Vase', 
-    src: 'https://sketchfab.com/models/9876254ce92e48ce90292d8d1af265a7/embed',
+    src: 'https://sketchfab.com/models/9876254ce92e48ce90292d8d1af265a7/embed?autospin=1&autostart=1&ui_hint=0',
     thumbnail: 'https://images.unsplash.com/photo-1554188572-9f21c11c0a30?auto=format&fit=crop&w=150&q=80'
   },
   {
     id: '4',
     name: 'Modern Sculpture',
-    src: 'https://sketchfab.com/models/42e02439746942e9ad1e9c22482b0f6b/embed',
+    src: 'https://sketchfab.com/models/42e02439746942e9ad1e9c22482b0f6b/embed?autospin=1&autostart=1&ui_hint=0',
     thumbnail: 'https://images.unsplash.com/photo-1535567465397-7523840f2ae4?auto=format&fit=crop&w=150&q=80'
   },
   {
     id: '5',
     name: 'Ceramic Pot',
-    src: 'https://sketchfab.com/models/e4e9a0e7bfe24ff787516a28b0a10c53/embed',
+    src: 'https://sketchfab.com/models/e4e9a0e7bfe24ff787516a28b0a10c53/embed?autospin=1&autostart=1&ui_hint=0',
     thumbnail: 'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=150&q=80'
   },
   {
     id: '6',
     name: 'Art Installation',
-    src: 'https://sketchfab.com/models/5c9cc5d76d3d4a6e89fd0c4ce55ba1db/embed',
+    src: 'https://sketchfab.com/models/5c9cc5d76d3d4a6e89fd0c4ce55ba1db/embed?autospin=1&autostart=1&ui_hint=0',
     thumbnail: 'https://images.unsplash.com/photo-1561839561-b13ccb4a67e5?auto=format&fit=crop&w=150&q=80'
   },
   {
     id: '7',
     name: 'Contemporary Art',
-    src: 'https://sketchfab.com/models/1e7e663d27974c7bb1418d7fa2526da0/embed',
+    src: 'https://sketchfab.com/models/1e7e663d27974c7bb1418d7fa2526da0/embed?autospin=1&autostart=1&ui_hint=0',
     thumbnail: 'https://images.unsplash.com/photo-1554188248-986adbb73be4?auto=format&fit=crop&w=150&q=80'
   }
 ];
