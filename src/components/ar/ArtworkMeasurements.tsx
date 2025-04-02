@@ -3,7 +3,7 @@ import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { 
   ArrowUp, ArrowDown, ArrowLeft, 
-  ArrowRight, Rulers, SlidersHorizontal 
+  ArrowRight, Ruler, SlidersHorizontal 
 } from 'lucide-react';
 
 export interface ARMeasurement {
@@ -60,7 +60,7 @@ const ArtworkMeasurements = ({
       <div className="bg-black/60 backdrop-blur-sm p-3 rounded-lg">
         <div className="flex justify-between items-center mb-2">
           <span className="text-white text-sm flex items-center">
-            <Rulers className="h-4 w-4 mr-1" />
+            <Ruler className="h-4 w-4 mr-1" />
             Artwork Dimensions
           </span>
           <span className="text-white text-sm font-medium">
