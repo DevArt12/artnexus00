@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Box, Cube } from 'lucide-react';
+import { Box, Package } from 'lucide-react';
 
 export interface ARModel {
   id: string;
@@ -73,7 +73,7 @@ const ARModelSelector = ({ models, selectedModel, onModelChange }: ARModelSelect
   return (
     <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md">
       <h3 className="text-lg font-medium mb-3 flex items-center">
-        <Cube className="h-4 w-4 mr-2 text-primary" />
+        <Package className="h-4 w-4 mr-2 text-primary" />
         3D Model Gallery
       </h3>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
