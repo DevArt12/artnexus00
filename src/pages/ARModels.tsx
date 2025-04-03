@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
-import { Cube, Search, Box, ExternalLink, Filter } from 'lucide-react';
+import { Box, Search, ExternalLink, Filter } from 'lucide-react';
 
 const ARModels = () => {
   const navigate = useNavigate();

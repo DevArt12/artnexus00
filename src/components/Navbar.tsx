@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { useTheme } from "@/components/theme-provider"
-import { MoonIcon, SunIcon } from '@radix-ui/react-icons';
+import { Moon, Sun } from 'lucide-react';
 
 import {
   Sheet,
@@ -26,10 +27,20 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     setMounted(true);
+    // Check if dark mode is active
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    setCurrentTheme(isDarkMode ? 'dark' : 'light');
   }, []);
+  
+  const toggleTheme = () => {
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    setCurrentTheme(newTheme);
+  }
   
   return (
     <header className="sticky top-0 z-40 bg-background border-b shadow-sm">
@@ -58,13 +69,14 @@ const Navbar = () => {
               <Search className="h-4 w-4" />
             </Button>
             
-            <Button variant="ghost" size="sm" onClick={() => setTheme(theme => theme === "dark" ? "light" : "dark")}>
-              {mounted ? (
-                <SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              ) : null}
-              {mounted ? (
-                <MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              ) : null}
+            <Button variant="ghost" size="sm" onClick={toggleTheme}>
+              {mounted && (
+                currentTheme === 'light' ? (
+                  <Sun className="h-[1.2rem] w-[1.2rem]" />
+                ) : (
+                  <Moon className="h-[1.2rem] w-[1.2rem]" />
+                )
+              )}
               <span className="sr-only">Toggle theme</span>
             </Button>
             
