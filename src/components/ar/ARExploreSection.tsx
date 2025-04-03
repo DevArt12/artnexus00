@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Box3D, ArrowRight, Image, ScanLine, CubeIcon } from 'lucide-react';
+import { Box, ArrowRight, Image, ScanLine } from 'lucide-react';
 import { ARModel, MODEL_OPTIONS } from './ARModelSelector';
 import { Artwork, artworks, getArtistById } from '@/data/mockData';
 
@@ -116,7 +116,7 @@ const ARExploreSection = () => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center mb-4">
-                  <Box3D className="h-5 w-5 mr-2 text-artnexus-purple" />
+                  <Box className="h-5 w-5 mr-2 text-artnexus-purple" />
                   <h3 className="text-xl font-semibold">3D Models</h3>
                 </div>
                 
@@ -212,7 +212,7 @@ const ModelARCard = ({ model, onClick }: { model: ARModel, onClick: () => void }
         <h4 className="text-sm font-medium">{model.name}</h4>
         <p className="text-xs text-muted-foreground">{model.creator}</p>
       </div>
-      <CubeIcon className="h-4 w-4 text-muted-foreground" />
+      <Box className="h-4 w-4 text-muted-foreground" />
     </motion.div>
   );
 };
