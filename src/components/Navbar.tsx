@@ -47,8 +47,8 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
-            <Logo />
-            <nav className="hidden md:flex items-center space-x-1 ml-10">
+            <Logo size="small" className="mr-4" />
+            <nav className="hidden md:flex items-center space-x-4 ml-2">
               <Link to="/" className={linkClasses}>Home</Link>
               <Link to="/discover" className={linkClasses}>Discover</Link>
               <Link to="/marketplace" className={linkClasses}>Marketplace</Link>
