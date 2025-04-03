@@ -1,4 +1,3 @@
-
 export interface MarketplaceItem {
   id: string;
   title: string;
@@ -304,5 +303,146 @@ export const marketplaceItems: MarketplaceItem[] = [
     dimensions: "16 × 20 inches (set of 4)",
     year: "2023",
     category: "photography"
+  },
+  {
+    id: "item-17",
+    title: "Cybernetic Landscape",
+    description: "A futuristic digital artwork exploring the intersection of technology and nature, rendered in neon colors and geometric patterns.",
+    image: "https://images.unsplash.com/photo-1633677560624-11b441d77d6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
+    price: "$750",
+    type: "digital",
+    status: "available",
+    artist: {
+      id: "artist-3",
+      name: "Sophia Lee",
+      photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80"
+    },
+    medium: "Digital art",
+    year: "2023",
+    category: "digital"
+  },
+  {
+    id: "item-18",
+    title: "Urban Canvas",
+    description: "A street art inspired piece capturing the energy and rhythm of city life through bold strokes and vivid colors.",
+    image: "https://images.unsplash.com/photo-1523554888454-84137e72c3ce?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
+    price: "$1,800",
+    type: "original",
+    status: "available",
+    artist: {
+      id: "artist-11",
+      name: "Marco Rivera",
+      photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80"
+    },
+    medium: "Mixed media on canvas",
+    dimensions: "48 × 36 inches",
+    year: "2022",
+    category: "mixed-media"
+  },
+  {
+    id: "item-19",
+    title: "Monochrome Study",
+    description: "A series of minimalist black and white photographs exploring textures and shadows in everyday objects.",
+    image: "https://images.unsplash.com/photo-1572883454114-1cf0031ede2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
+    price: "$950",
+    type: "print",
+    status: "available",
+    artist: {
+      id: "artist-2",
+      name: "James Wilson",
+      photo: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80"
+    },
+    medium: "Silver gelatin print",
+    dimensions: "20 × 16 inches (set of 3)",
+    year: "2023",
+    category: "photography"
+  },
+  {
+    id: "item-20",
+    title: "Terra Forma",
+    description: "A ceramic sculpture inspired by geological formations and ancient earthworks, glazed in earth tones and metallic accents.",
+    image: "https://images.unsplash.com/photo-1565378435245-4449e9db2b30?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
+    price: "$2,400",
+    type: "original",
+    status: "available",
+    artist: {
+      id: "artist-10",
+      name: "Hiroshi Tanaka",
+      photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80"
+    },
+    medium: "Stoneware ceramic",
+    dimensions: "18 × 16 × 14 inches",
+    year: "2023",
+    category: "sculpture"
+  },
+  {
+    id: "item-21",
+    title: "Quantum Entanglement",
+    description: "An abstract digital artwork visualizing quantum physics concepts through fractal patterns and vibrant color interactions.",
+    image: "https://images.unsplash.com/photo-1574169208507-84376144848b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
+    price: "$580",
+    type: "digital",
+    status: "available",
+    artist: {
+      id: "artist-8",
+      name: "Ray Zhang",
+      photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80"
+    },
+    medium: "Digital art",
+    year: "2023",
+    category: "digital"
+  },
+  {
+    id: "item-22",
+    title: "Coastal Memories",
+    description: "A series of impressionistic watercolors capturing the light and atmosphere of coastal landscapes at different times of day.",
+    image: "https://images.unsplash.com/photo-1548516173-3cabfa4607e9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
+    price: "$1,200",
+    type: "original",
+    status: "available",
+    artist: {
+      id: "artist-9",
+      name: "Lila Patel",
+      photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80"
+    },
+    medium: "Watercolor on paper",
+    dimensions: "15 × 11 inches (set of 4)",
+    year: "2022",
+    category: "painting"
+  },
+  {
+    id: "item-23",
+    title: "Industrial Evolution",
+    description: "A large-scale sculpture constructed from reclaimed industrial materials, commenting on the relationship between humanity and technology.",
+    image: "https://images.unsplash.com/photo-1575303093927-627aeb3dae0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
+    price: "$3,800",
+    type: "original",
+    status: "available",
+    artist: {
+      id: "artist-4",
+      name: "Marcus Chen",
+      photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80"
+    },
+    medium: "Mixed media sculpture",
+    dimensions: "30 × 22 × 18 inches",
+    year: "2023",
+    category: "sculpture"
+  },
+  {
+    id: "item-24",
+    title: "Dreamscape Portal",
+    description: "A surreal digital collage blending photography and digital painting to create a portal to imaginary worlds and states of consciousness.",
+    image: "https://images.unsplash.com/photo-1604871000636-074fa5117945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
+    price: "$690",
+    type: "digital",
+    status: "available",
+    artist: {
+      id: "artist-3",
+      name: "Sophia Lee",
+      photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80"
+    },
+    medium: "Digital art",
+    year: "2023",
+    category: "digital"
   }
 ];

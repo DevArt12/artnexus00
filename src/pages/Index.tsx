@@ -1,162 +1,220 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import ArtCard from '@/components/ArtCard';
 import FeaturedArtist from '@/components/FeaturedArtist';
-import CategoryFilter from '@/components/CategoryFilter';
-import { 
-  artists, 
-  artworks, 
-  getArtistById, 
-  categories,
-  getArtworksByArtist 
-} from '@/data/mockData';
+import ArtCard from '@/components/ArtCard';
+import ARExploreSection from '@/components/ar/ARExploreSection';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Import mock data as fallback
+import { artworks as mockArtworks, artists, featuredArtists, getArtistById } from '@/data/mockData';
+
+const fetchFeaturedArtworks = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('artworks')
+      .select(`
+        *,
+        profiles:artist_id(*)
+      `)
+      .order('created_at', { ascending: false })
+      .limit(8);
+    
+    if (error) throw error;
+    
+    if (data && data.length) {
+      // Format for our app's structure
+      return data.map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        image: item.image,
+        categories: [item.category],
+        artistId: item.artist_id,
+        artist: item.profiles ? {
+          id: item.profiles.id,
+          name: item.profiles.username,
+          profileImage: item.profiles.avatar,
+        } : undefined
+      }));
+    }
+    
+    // Fallback to mock data
+    return mockArtworks.slice(0, 8);
+  } catch (error) {
+    console.error('Error fetching featured artworks:', error);
+    return mockArtworks.slice(0, 8);
+  }
+};
 
 const Index = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const heroImages = [
+    'https://images.unsplash.com/photo-1604537529428-15bcbeecfe4d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
+    'https://images.unsplash.com/photo-1577720580479-7d839d829c73?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
+    'https://images.unsplash.com/photo-1590598016995-e7c63e6b5ba9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
+  ];
   
-  // Filter artworks based on selected category
-  const filteredArtworks = selectedCategory
-    ? artworks.filter(artwork => artwork.categories.includes(selectedCategory))
-    : artworks;
+  // Fetch featured artworks with React Query
+  const { data: featuredArtworks, isLoading } = useQuery({
+    queryKey: ['featuredArtworks'],
+    queryFn: fetchFeaturedArtworks,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+  
+  // Use mock data if still loading or query failed
+  const artworksToShow = featuredArtworks || mockArtworks.slice(0, 8);
+  
+  // Cycle through hero images
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => 
+        prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
   
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      {/* Hero section */}
-      <section className="relative py-16 md:py-24 hero-gradient">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-artnexus-purple/40 to-artnexus-teal/40 backdrop-blur-sm"></div>
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1561214115-f2f134cc4912?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center opacity-20 mix-blend-overlay"></div>
-        </div>
+      {/* Hero Section */}
+      <section className="relative h-[70vh] overflow-hidden">
+        {heroImages.map((image, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+              index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <img
+              src={image}
+              alt="Featured artwork"
+              className="w-full h-full object-cover"
+              loading={index === 0 ? 'eager' : 'lazy'}
+            />
+            <div className="absolute inset-0 bg-black bg-opacity-40" />
+          </div>
+        ))}
         
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-              Where Art Creates Connection
-            </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-8">
-              Discover, connect, and collect art from incredible artists around the world.
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-              <Button 
-                className="bg-white text-artnexus-purple hover:bg-white/90 text-lg px-8 py-6"
-                asChild
-              >
-                <Link to="/discover">Explore Artwork</Link>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="border-white text-white hover:bg-white/10 text-lg px-8 py-6"
-                asChild
-              >
-                <Link to="/auth">Join ArtNexus</Link>
-              </Button>
-            </div>
+        <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-4">
+          <motion.h1
+            className="text-4xl md:text-6xl font-bold text-white mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            ArtNexus
+          </motion.h1>
+          <motion.p
+            className="text-xl md:text-2xl text-white mb-8 max-w-2xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            Explore, experience, and collect contemporary art in new ways
+          </motion.p>
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <Button asChild size="lg" className="bg-artnexus-purple hover:bg-artnexus-purple/90">
+              <Link to="/discover">Explore Artwork</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white">
+              <Link to="/marketplace">Visit Marketplace</Link>
+            </Button>
+          </motion.div>
+        </div>
+      </section>
+      
+      {/* AR Explore Section */}
+      <ARExploreSection />
+      
+      {/* Featured Artworks Section */}
+      <section className="py-12">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold">Featured Artwork</h2>
+            <Button asChild variant="outline" className="group">
+              <Link to="/discover" className="flex items-center">
+                View All 
+                <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {isLoading ? (
+              // Loading skeletons
+              Array(8).fill(null).map((_, index) => (
+                <Card key={index}>
+                  <Skeleton className="h-64 w-full rounded-t-lg" />
+                  <CardContent className="p-4">
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              artworksToShow.map((artwork) => (
+                <ArtCard
+                  key={artwork.id}
+                  artwork={artwork}
+                  artist={artwork.artist || getArtistById(artwork.artistId)!}
+                />
+              ))
+            )}
           </div>
         </div>
       </section>
       
-      {/* Featured artworks section */}
-      <section className="py-16">
+      {/* Featured Artists Section */}
+      <section className="py-12 bg-gray-50 dark:bg-gray-900">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold mb-2">Featured Artwork</h2>
-              <p className="text-muted-foreground">Discover the latest and most inspiring creations</p>
-            </div>
-            <div className="flex items-center gap-4 mt-4 md:mt-0">
-              <Link 
-                to="/collections" 
-                className="inline-flex items-center text-artnexus-teal hover:text-artnexus-purple"
-              >
-                My Collections
-                <ChevronRight className="h-4 w-4 ml-1" />
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold">Featured Artists</h2>
+            <Button asChild variant="outline" className="group">
+              <Link to="/discover" className="flex items-center">
+                Explore Artists
+                <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
-              <Link 
-                to="/discover" 
-                className="inline-flex items-center text-artnexus-purple hover:text-artnexus-teal"
-              >
-                View All
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Link>
-            </div>
+            </Button>
           </div>
           
-          <CategoryFilter 
-            selectedCategory={selectedCategory} 
-            onSelectCategory={setSelectedCategory} 
-          />
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8 animate-fade-in">
-            {filteredArtworks.slice(0, 8).map((artwork) => {
-              const artist = getArtistById(artwork.artistId)!;
-              return (
-                <ArtCard key={artwork.id} artwork={artwork} artist={artist} />
-              );
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredArtists.map((artistId) => {
+              const artist = artists.find((a) => a.id === artistId);
+              if (!artist) return null;
+              return <FeaturedArtist key={artist.id} artist={artist} />;
             })}
           </div>
         </div>
       </section>
       
-      {/* Featured artists section */}
-      <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold mb-2">Featured Artists</h2>
-              <p className="text-muted-foreground">Connect with talented creators from around the world</p>
-            </div>
-            <Link 
-              to="/artists" 
-              className="inline-flex items-center text-artnexus-purple hover:text-artnexus-teal mt-4 md:mt-0"
-            >
-              View All
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Link>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in">
-            {artists.map((artist) => (
-              <FeaturedArtist 
-                key={artist.id} 
-                artist={artist} 
-                artworks={getArtworksByArtist(artist.id)} 
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-      
-      {/* CTA section */}
-      <section className="py-16 bg-gradient-to-r from-artnexus-purple to-artnexus-teal">
+      {/* CTA Section */}
+      <section className="py-16 bg-artnexus-purple text-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Ready to share your creativity?</h2>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Join our community of artists and art enthusiasts. Upload your art, connect with others, and start your creative journey today.
+          <h2 className="text-3xl font-bold mb-4">Ready to Start Your Art Journey?</h2>
+          <p className="text-xl mb-8 max-w-2xl mx-auto">
+            Join ArtNexus to discover new artists, collect artwork, and connect with a community of art enthusiasts.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Button 
-              size="lg" 
-              className="bg-white text-artnexus-purple hover:bg-white/90 px-8"
-              asChild
-            >
-              <Link to="/auth">Join ArtNexus</Link>
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="border-white text-white hover:bg-white/10 px-8"
-              asChild
-            >
-              <Link to="/collections">Manage Collections</Link>
-            </Button>
-          </div>
+          <Button asChild size="lg" variant="secondary" className="bg-white text-artnexus-purple hover:bg-gray-100">
+            <Link to="/auth">Sign Up Now</Link>
+          </Button>
         </div>
       </section>
       
