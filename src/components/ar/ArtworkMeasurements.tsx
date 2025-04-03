@@ -1,175 +1,151 @@
 
-import { Slider } from '@/components/ui/slider';
-import { Button } from '@/components/ui/button';
-import { 
-  ArrowUp, ArrowDown, ArrowLeft, 
-  ArrowRight, Ruler, SlidersHorizontal,
-  RotateCw, RefreshCw
-} from 'lucide-react';
+import { useState } from 'react';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Ruler } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export interface ARMeasurement {
   width: number;
   height: number;
-  units: 'cm' | 'inches' | 'feet';
+  units: 'cm' | 'in';
 }
 
 interface ArtworkMeasurementsProps {
   measurements: ARMeasurement;
   onMeasurementsChange: (measurements: ARMeasurement) => void;
   onMove: (dx: number, dy: number) => void;
-  onReset?: () => void;
 }
 
-const ArtworkMeasurements = ({ 
-  measurements, 
+const ArtworkMeasurements = ({
+  measurements,
   onMeasurementsChange,
-  onMove,
-  onReset
+  onMove
 }: ArtworkMeasurementsProps) => {
-  const handleUnitChange = (unit: 'cm' | 'inches' | 'feet') => {
-    let newWidth = measurements.width;
-    let newHeight = measurements.height;
-    
-    // Convert current measurements to the new unit
-    if (measurements.units === 'cm' && unit === 'inches') {
-      newWidth = Math.round(measurements.width / 2.54);
-      newHeight = Math.round(measurements.height / 2.54);
-    } else if (measurements.units === 'cm' && unit === 'feet') {
-      newWidth = Math.round(measurements.width / 30.48);
-      newHeight = Math.round(measurements.height / 30.48);
-    } else if (measurements.units === 'inches' && unit === 'cm') {
-      newWidth = Math.round(measurements.width * 2.54);
-      newHeight = Math.round(measurements.height * 2.54);
-    } else if (measurements.units === 'inches' && unit === 'feet') {
-      newWidth = Math.round(measurements.width / 12);
-      newHeight = Math.round(measurements.height / 12);
-    } else if (measurements.units === 'feet' && unit === 'cm') {
-      newWidth = Math.round(measurements.width * 30.48);
-      newHeight = Math.round(measurements.height * 30.48);
-    } else if (measurements.units === 'feet' && unit === 'inches') {
-      newWidth = Math.round(measurements.width * 12);
-      newHeight = Math.round(measurements.height * 12);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const isMobile = useIsMobile();
+  
+  const handleChangeWidth = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const width = parseInt(e.target.value);
+    if (!isNaN(width)) {
+      onMeasurementsChange({
+        ...measurements,
+        width
+      });
     }
-    
+  };
+  
+  const handleChangeHeight = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const height = parseInt(e.target.value);
+    if (!isNaN(height)) {
+      onMeasurementsChange({
+        ...measurements,
+        height
+      });
+    }
+  };
+  
+  const handleChangeUnits = (units: 'cm' | 'in') => {
     onMeasurementsChange({
-      width: newWidth,
-      height: newHeight,
-      units: unit
+      ...measurements,
+      units
     });
   };
   
-  const resetMeasurements = () => {
-    // Reset to default measurements
-    onMeasurementsChange({
-      width: 100,
-      height: 80,
-      units: 'cm'
-    });
-    
-    // If external reset function provided, call it too
-    if (onReset) {
-      onReset();
-    }
-  };
+  const moveAmount = 10;
   
   return (
-    <div className="absolute bottom-4 left-4 right-4">
-      <div className="bg-black/60 backdrop-blur-sm p-3 rounded-lg">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-white text-sm flex items-center">
-            <Ruler className="h-4 w-4 mr-1" />
-            Artwork Dimensions
+    <div className={`absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/40 backdrop-blur-sm rounded-lg p-2 text-white ${isMobile ? 'w-[90%]' : 'w-auto'}`}>
+      <div 
+        className="flex items-center justify-between cursor-pointer"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex items-center">
+          <Ruler className="h-4 w-4 mr-2" />
+          <span className="text-sm font-medium">
+            {measurements.width} × {measurements.height} {measurements.units}
           </span>
-          <div className="flex items-center gap-2">
-            <span className="text-white text-sm font-medium">
-              {measurements.width} × {measurements.height} {measurements.units}
-            </span>
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              className="h-6 w-6 p-0 rounded-full text-white/70 hover:text-white hover:bg-white/10"
-              onClick={resetMeasurements}
-              title="Reset dimensions"
-            >
-              <RefreshCw className="h-3 w-3" />
-            </Button>
-          </div>
         </div>
-        
-        <div className="grid grid-cols-2 gap-4 mb-3">
-          <div>
-            <span className="text-white/80 text-xs block mb-1">Width</span>
-            <Slider 
-              value={[measurements.width]} 
-              min={10} 
-              max={measurements.units === 'cm' ? 300 : (measurements.units === 'inches' ? 120 : 10)}
-              step={1}
-              onValueChange={(value) => onMeasurementsChange({...measurements, width: value[0]})}
-              className="mb-2"
-            />
-          </div>
-          <div>
-            <span className="text-white/80 text-xs block mb-1">Height</span>
-            <Slider 
-              value={[measurements.height]} 
-              min={10} 
-              max={measurements.units === 'cm' ? 300 : (measurements.units === 'inches' ? 120 : 10)}
-              step={1}
-              onValueChange={(value) => onMeasurementsChange({...measurements, height: value[0]})}
-              className="mb-2"
-            />
-          </div>
-        </div>
-        
-        <div className="flex justify-between mb-3">
-          <div className="flex gap-1">
-            <Button 
-              size="sm" 
-              variant={measurements.units === 'cm' ? 'default' : 'outline'} 
-              className={`h-7 px-2 ${measurements.units === 'cm' ? 'bg-primary text-primary-foreground' : 'bg-white/10 text-white border-white/20'}`}
-              onClick={() => handleUnitChange('cm')}
-            >
-              cm
-            </Button>
-            <Button 
-              size="sm" 
-              variant={measurements.units === 'inches' ? 'default' : 'outline'} 
-              className={`h-7 px-2 ${measurements.units === 'inches' ? 'bg-primary text-primary-foreground' : 'bg-white/10 text-white border-white/20'}`}
-              onClick={() => handleUnitChange('inches')}
-            >
-              in
-            </Button>
-            <Button 
-              size="sm" 
-              variant={measurements.units === 'feet' ? 'default' : 'outline'} 
-              className={`h-7 px-2 ${measurements.units === 'feet' ? 'bg-primary text-primary-foreground' : 'bg-white/10 text-white border-white/20'}`}
-              onClick={() => handleUnitChange('feet')}
-            >
-              ft
-            </Button>
-          </div>
-          
-          <div className="flex items-center gap-1 text-white text-xs">
-            <SlidersHorizontal className="h-3 w-3" />
-            <span>Position Controls</span>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-4 gap-2">
-          <Button size="sm" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20" onClick={() => onMove(0, -10)}>
-            <ArrowUp className="h-4 w-4" />
-          </Button>
-          <Button size="sm" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20" onClick={() => onMove(0, 10)}>
-            <ArrowDown className="h-4 w-4" />
-          </Button>
-          <Button size="sm" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20" onClick={() => onMove(-10, 0)}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <Button size="sm" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/20" onClick={() => onMove(10, 0)}>
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+        <div className="text-xs">
+          {isExpanded ? '▲ Collapse' : '▼ Expand'}
         </div>
       </div>
+      
+      {isExpanded && (
+        <div className={`mt-2 pt-2 border-t border-white/20 ${isMobile ? 'flex flex-col gap-2' : 'grid grid-cols-3 gap-4'}`}>
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="width" className="text-xs">Width</Label>
+            <div className="flex">
+              <Input
+                id="width"
+                type="number"
+                value={measurements.width}
+                onChange={handleChangeWidth}
+                className="h-8 text-xs bg-transparent border-white/30 text-white"
+              />
+            </div>
+          </div>
+          
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="height" className="text-xs">Height</Label>
+            <div className="flex">
+              <Input
+                id="height"
+                type="number"
+                value={measurements.height}
+                onChange={handleChangeHeight}
+                className="h-8 text-xs bg-transparent border-white/30 text-white"
+              />
+            </div>
+          </div>
+          
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="units" className="text-xs">Units</Label>
+            <Select
+              value={measurements.units}
+              onValueChange={(value: 'cm' | 'in') => handleChangeUnits(value)}
+            >
+              <SelectTrigger id="units" className="h-8 text-xs bg-transparent border-white/30 text-white">
+                <SelectValue placeholder="Units" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cm">cm</SelectItem>
+                <SelectItem value="in">inches</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className={`col-span-3 mt-2 grid grid-cols-3 gap-1 ${isMobile ? 'scale-90 mx-auto' : ''}`}>
+            <div></div>
+            <Button size="icon" variant="outline" className="h-8 w-8 border-white/30" onClick={() => onMove(0, -moveAmount)}>
+              <ArrowUp className="h-4 w-4" />
+            </Button>
+            <div></div>
+            
+            <Button size="icon" variant="outline" className="h-8 w-8 border-white/30" onClick={() => onMove(-moveAmount, 0)}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div></div>
+            <Button size="icon" variant="outline" className="h-8 w-8 border-white/30" onClick={() => onMove(moveAmount, 0)}>
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            
+            <div></div>
+            <Button size="icon" variant="outline" className="h-8 w-8 border-white/30" onClick={() => onMove(0, moveAmount)}>
+              <ArrowDown className="h-4 w-4" />
+            </Button>
+            <div></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

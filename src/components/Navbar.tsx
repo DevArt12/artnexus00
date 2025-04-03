@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { useTheme } from "@/components/theme-provider"
 import { Moon, Sun } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 import {
   Sheet,
@@ -28,6 +29,7 @@ const Navbar = () => {
   const { setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setMounted(true);
@@ -47,8 +49,8 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
-            <Logo size="small" className="mr-4" />
-            <nav className="hidden md:flex items-center space-x-4 ml-2">
+            <Logo size="small" className="mr-2" />
+            <nav className="hidden md:flex items-center space-x-3 ml-2">
               <Link to="/" className={linkClasses}>Home</Link>
               <Link to="/discover" className={linkClasses}>Discover</Link>
               <Link to="/marketplace" className={linkClasses}>Marketplace</Link>
@@ -59,7 +61,7 @@ const Navbar = () => {
             </nav>
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             <Button
               variant="ghost"
               size="sm"
@@ -80,32 +82,38 @@ const Navbar = () => {
               <span className="sr-only">Toggle theme</span>
             </Button>
             
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
+            {!isMobile && (
+              <Avatar className="h-8 w-8">
+                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+            )}
             
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="sm" className="md:hidden">
-                  <Menu className="h-4 w-4" />
+                  <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="sm:w-64">
-                <SheetHeader>
-                  <SheetTitle>Menu</SheetTitle>
-                  <SheetDescription>
-                    Explore ArtNexus
-                  </SheetDescription>
-                </SheetHeader>
+              <SheetContent side="right" className="w-[85vw] sm:w-80 pt-10">
+                <div className="flex items-center mb-6">
+                  <Avatar className="h-8 w-8 mr-2">
+                    <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                    <AvatarFallback>CN</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium">User Account</p>
+                    <p className="text-xs text-muted-foreground">View Profile</p>
+                  </div>
+                </div>
                 <nav className="grid gap-4 py-4">
-                  <Link to="/" className={linkClasses}>Home</Link>
-                  <Link to="/discover" className={linkClasses}>Discover</Link>
-                  <Link to="/marketplace" className={linkClasses}>Marketplace</Link>
-                  <Link to="/ar-view/1" className={linkClasses}>AR View</Link>
-                  <Link to="/ar-models" className={linkClasses}>3D Models</Link>
-                  <Link to="/events" className={linkClasses}>Events</Link>
-                  <Link to="/art-classes" className={linkClasses}>Classes</Link>
+                  <Link to="/" className={linkClasses + " flex items-center p-2 rounded-md hover:bg-muted"}>Home</Link>
+                  <Link to="/discover" className={linkClasses + " flex items-center p-2 rounded-md hover:bg-muted"}>Discover</Link>
+                  <Link to="/marketplace" className={linkClasses + " flex items-center p-2 rounded-md hover:bg-muted"}>Marketplace</Link>
+                  <Link to="/ar-view/1" className={linkClasses + " flex items-center p-2 rounded-md hover:bg-muted"}>AR View</Link>
+                  <Link to="/ar-models" className={linkClasses + " flex items-center p-2 rounded-md hover:bg-muted"}>3D Models</Link>
+                  <Link to="/events" className={linkClasses + " flex items-center p-2 rounded-md hover:bg-muted"}>Events</Link>
+                  <Link to="/art-classes" className={linkClasses + " flex items-center p-2 rounded-md hover:bg-muted"}>Classes</Link>
                 </nav>
               </SheetContent>
             </Sheet>
@@ -114,19 +122,19 @@ const Navbar = () => {
       </div>
       
       <Sheet open={isSearchDialogOpen} onOpenChange={setIsSearchDialogOpen}>
-        <SheetTrigger asChild>
-          <Button variant="ghost">Open</Button>
-        </SheetTrigger>
-        <SheetContent className="sm:w-full">
-          <SheetHeader>
+        <SheetContent className="top-0 w-full sm:max-w-full">
+          <SheetHeader className="mt-10">
             <SheetTitle>Search</SheetTitle>
             <SheetDescription>
               Find artwork, artists, and more.
             </SheetDescription>
           </SheetHeader>
           <div className="grid gap-4 py-4">
-            <Input placeholder="Search ArtNexus..." />
+            <Input placeholder="Search ArtNexus..." className="h-10" />
           </div>
+          <Button variant="outline" className="w-full mt-2" onClick={() => setIsSearchDialogOpen(false)}>
+            Cancel
+          </Button>
         </SheetContent>
       </Sheet>
     </header>

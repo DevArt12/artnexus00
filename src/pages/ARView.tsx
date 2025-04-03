@@ -19,6 +19,7 @@ import ARViewControls from '@/components/ar/ARViewControls';
 import ArtworkMeasurements, { ARMeasurement } from '@/components/ar/ArtworkMeasurements';
 import ARModelSelector, { MODEL_OPTIONS } from '@/components/ar/ARModelSelector';
 import EnvironmentSettings from '@/components/ar/EnvironmentSettings';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface Collection {
   id: string;
@@ -55,6 +56,8 @@ const ARView = () => {
   const [view3DMode, setView3DMode] = useState(false);
   const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[0]);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  
+  const isMobile = useIsMobile();
   
   const { isLoading, error } = useQuery({
     queryKey: ['artwork', id],
@@ -204,9 +207,22 @@ const ARView = () => {
   const handleActivateAR = () => {
     if (isARSupported) {
       setArViewActive(true);
-      toast.success("AR view activated! Move your device to place the artwork");
+      toast.success(isMobile ? 
+        "AR view activated! Move your device slowly to place artwork" : 
+        "AR view activated! Move your device to place the artwork");
+      
+      if (isMobile) {
+        toast.info("For best results, ensure good lighting and hold your device steady", {
+          duration: 5000,
+        });
+      }
     } else {
       toast.error("AR view is not supported on your device");
+      if (isMobile) {
+        toast.info("Try using our virtual view option instead", {
+          duration: 3000,
+        });
+      }
     }
   };
   
@@ -422,9 +438,9 @@ const ARView = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-8 flex-grow">
-        <h1 className="text-3xl font-bold mb-2">AR Viewer</h1>
-        <p className="text-muted-foreground mb-8">
+      <div className="container mx-auto px-4 py-4 md:py-8 flex-grow">
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">AR Viewer</h1>
+        <p className="text-muted-foreground mb-4 md:mb-8 text-sm md:text-base">
           Experience "{artwork.title}" in your space with augmented reality
         </p>
         
@@ -437,7 +453,7 @@ const ARView = () => {
             </Alert>
           )}
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
             <div className="lg:col-span-2">
               {arViewActive ? (
                 <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
@@ -514,7 +530,7 @@ const ARView = () => {
             </div>
             
             <div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
                 <h2 className="text-xl font-semibold mb-4">{artwork.title}</h2>
                 
                 {artist && (
@@ -530,25 +546,25 @@ const ARView = () => {
                   </div>
                 )}
                 
-                <p className="text-muted-foreground mb-6">{artwork.description}</p>
+                <p className="text-muted-foreground mb-6 text-sm md:text-base line-clamp-3 md:line-clamp-none">{artwork.description}</p>
                 
                 <Tabs defaultValue="ar">
-                  <TabsList className="w-full mb-6">
+                  <TabsList className="w-full mb-4 md:mb-6">
                     <TabsTrigger value="ar" className="flex-1">
-                      <Camera className="h-4 w-4 mr-2" />
-                      AR View
+                      <Camera className="h-4 w-4 mr-1 md:mr-2" />
+                      <span className="text-xs md:text-sm">AR View</span>
                     </TabsTrigger>
                     <TabsTrigger value="3d" className="flex-1">
-                      <Box className="h-4 w-4 mr-2" />
-                      Virtual View
+                      <Box className="h-4 w-4 mr-1 md:mr-2" />
+                      <span className="text-xs md:text-sm">Virtual View</span>
                     </TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="ar">
-                    <p className="text-sm text-muted-foreground mb-4">
+                    <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                       Place this artwork in your space using augmented reality.
                     </p>
-                    <div className="space-y-3">
+                    <div className="space-y-2 md:space-y-3">
                       <Button
                         className="w-full"
                         onClick={() => {
@@ -558,7 +574,9 @@ const ARView = () => {
                         disabled={!isARSupported || (arViewActive && !view3DMode)}
                       >
                         <Camera className="h-4 w-4 mr-2" />
-                        {arViewActive && !view3DMode ? 'AR View Active' : 'Start AR View'}
+                        <span className="text-xs md:text-sm">
+                          {arViewActive && !view3DMode ? 'AR View Active' : 'Start AR View'}
+                        </span>
                       </Button>
                       
                       {arViewActive && !view3DMode && (
@@ -569,27 +587,29 @@ const ARView = () => {
                           disabled={wallScanActive}
                         >
                           <Scan className="h-4 w-4 mr-2" />
-                          {wallScanActive ? 'Scanning...' : 'Scan Your Wall'}
+                          <span className="text-xs md:text-sm">
+                            {wallScanActive ? 'Scanning...' : 'Scan Your Wall'}
+                          </span>
                         </Button>
                       )}
                     </div>
                     
                     {artwork.dimensions && (
                       <div className="mt-4 pt-4 border-t">
-                        <h3 className="text-sm font-medium mb-2 flex items-center">
+                        <h3 className="text-xs md:text-sm font-medium mb-2 flex items-center">
                           <Ruler className="h-4 w-4 mr-2 text-muted-foreground" />
                           Actual Dimensions
                         </h3>
-                        <p className="text-sm">{artwork.dimensions}</p>
+                        <p className="text-xs md:text-sm">{artwork.dimensions}</p>
                       </div>
                     )}
                   </TabsContent>
                   
                   <TabsContent value="3d">
-                    <p className="text-sm text-muted-foreground mb-4">
+                    <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                       Explore artworks as 3D models or in a virtual environment.
                     </p>
-                    <div className="space-y-3">
+                    <div className="space-y-2 md:space-y-3">
                       <Button 
                         className="w-full" 
                         onClick={() => {
@@ -599,7 +619,7 @@ const ARView = () => {
                         }}
                       >
                         <Monitor className="h-4 w-4 mr-2" />
-                        2D Virtual View
+                        <span className="text-xs md:text-sm">2D Virtual View</span>
                       </Button>
                       
                       <Button 
@@ -611,13 +631,13 @@ const ARView = () => {
                         }}
                       >
                         <Box className="h-4 w-4 mr-2" />
-                        3D Model View
+                        <span className="text-xs md:text-sm">3D Model View</span>
                       </Button>
                     </div>
                     
                     <div className="mt-4 space-y-2">
-                      <p className="text-sm font-medium">Virtual Features:</p>
-                      <ul className="text-sm text-muted-foreground space-y-1">
+                      <p className="text-xs md:text-sm font-medium">Virtual Features:</p>
+                      <ul className="text-xs md:text-sm text-muted-foreground space-y-1">
                         <li className="flex items-center">
                           <CheckCircle className="h-3 w-3 mr-2 text-green-500" />
                           Interact with 3D models
@@ -635,8 +655,8 @@ const ARView = () => {
                   </TabsContent>
                 </Tabs>
                 
-                <div className="mt-6 pt-6 border-t space-y-3">
-                  <Button variant="outline" className="w-full justify-between" onClick={() => setShowCollectionDialog(true)}>
+                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t space-y-2 md:space-y-3">
+                  <Button variant="outline" className="w-full justify-between text-xs md:text-sm" onClick={() => setShowCollectionDialog(true)}>
                     <span className="flex items-center">
                       <List className="h-4 w-4 mr-2" />
                       Add to Collection
@@ -646,12 +666,12 @@ const ARView = () => {
                     </span>
                   </Button>
                   
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start text-xs md:text-sm">
                     <Share2 className="h-4 w-4 mr-2" />
                     Share AR View
                   </Button>
                   
-                  <Button variant="ghost" className="w-full justify-start" asChild>
+                  <Button variant="ghost" className="w-full justify-start text-xs md:text-sm" asChild>
                     <a href={`/artwork/${id}`}>
                       <Image className="h-4 w-4 mr-2" />
                       Back to Artwork Details
@@ -662,39 +682,10 @@ const ARView = () => {
             </div>
           </div>
           
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">AR Viewing Tips</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Camera className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="font-medium mb-2">Good Lighting</h3>
-                <p className="text-sm text-muted-foreground">Use AR in well-lit environments for the best experience</p>
-              </div>
-              
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Home className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="font-medium mb-2">Steady Movement</h3>
-                <p className="text-sm text-muted-foreground">Move your device slowly for accurate surface detection</p>
-              </div>
-              
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Box className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="font-medium mb-2">3D Models</h3>
-                <p className="text-sm text-muted-foreground">Try our Sketchfab 3D model integrations for a richer experience</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">Try More Artworks in AR</h2>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              {suggestedArtworks.map((suggestedArt) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
+              {suggestedArtworks.slice(0, isMobile ? 4 : 5).map((suggestedArt) => (
                 <div 
                   key={suggestedArt.id} 
                   className="cursor-pointer hover:opacity-80 transition-opacity"
@@ -707,18 +698,23 @@ const ARView = () => {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <p className="text-sm font-medium truncate">{suggestedArt.title}</p>
+                  <p className="text-xs md:text-sm font-medium truncate">{suggestedArt.title}</p>
                   <p className="text-xs text-muted-foreground truncate">{suggestedArt.categories.join(', ')}</p>
                 </div>
               ))}
             </div>
+            {isMobile && suggestedArtworks.length > 4 && (
+              <Button variant="ghost" className="w-full mt-4 text-xs">
+                View All Suggestions
+              </Button>
+            )}
           </div>
           
-          {recentlyViewed.length > 1 && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+          {recentlyViewed.length > 1 && (!isMobile || true) && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6 mb-8">
               <h2 className="text-xl font-semibold mb-4">Recently Viewed</h2>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {recentlyViewed.slice(1, 6).map((recentArt) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
+                {recentlyViewed.slice(1, isMobile ? 3 : 6).map((recentArt) => (
                   <div 
                     key={recentArt.id} 
                     className="cursor-pointer hover:opacity-80 transition-opacity"
@@ -731,7 +727,7 @@ const ARView = () => {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <p className="text-sm font-medium truncate">{recentArt.title}</p>
+                    <p className="text-xs md:text-sm font-medium truncate">{recentArt.title}</p>
                   </div>
                 ))}
               </div>
@@ -741,7 +737,7 @@ const ARView = () => {
       </div>
       
       <Dialog open={showCollectionDialog} onOpenChange={setShowCollectionDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-w-[90vw] md:max-w-md">
           <DialogHeader>
             <DialogTitle>Save to Collection</DialogTitle>
           </DialogHeader>

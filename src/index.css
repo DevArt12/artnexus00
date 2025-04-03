@@ -75,6 +75,8 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -93,4 +95,36 @@
     transform: translateY(-5px);
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   }
+  
+  /* Mobile-specific adjustments */
+  @media (max-width: 768px) {
+    .container {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+    
+    input, select, button {
+      font-size: 16px; /* Prevents iOS zoom on input focus */
+    }
+    
+    .sheet-content {
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .dialog-content {
+      width: 90vw;
+      max-width: 90vw;
+    }
+    
+    /* Fix for iPhone notch/dynamic island */
+    .ios-safe-top {
+      padding-top: env(safe-area-inset-top);
+    }
+    
+    .ios-safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
 }
+

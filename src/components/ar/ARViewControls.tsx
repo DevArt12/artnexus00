@@ -5,6 +5,7 @@ import {
   Camera, Save, ArrowDown, ArrowUp, 
   ArrowLeft, ArrowRight, RefreshCw 
 } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ARViewControlsProps {
   onZoomIn: () => void;
@@ -25,9 +26,11 @@ const ARViewControls = ({
   onTakeScreenshot,
   onSave
 }: ARViewControlsProps) => {
+  const isMobile = useIsMobile();
+  
   return (
     <>
-      <div className="absolute top-4 right-4 flex flex-col gap-2">
+      <div className={`absolute top-4 right-4 flex flex-col gap-2 ${isMobile ? 'scale-75 -mr-2' : ''}`}>
         <div className="bg-black/40 backdrop-blur-sm rounded-lg p-1 flex gap-1">
           <Button size="icon" variant="ghost" className="h-8 w-8 text-white" onClick={onZoomIn}>
             <ZoomIn className="h-4 w-4" />
@@ -51,14 +54,14 @@ const ARViewControls = ({
         </Button>
       </div>
       
-      <div className="absolute top-4 left-4 flex gap-2">
+      <div className={`absolute top-4 left-4 flex gap-2 ${isMobile ? 'scale-75 -ml-2 flex-col' : ''}`}>
         <Button 
           variant="ghost" 
           className="h-8 bg-black/40 backdrop-blur-sm text-white hover:bg-black/60"
           onClick={onTakeScreenshot}
         >
           <Camera className="h-4 w-4 mr-2" />
-          Capture
+          {!isMobile && "Capture"}
         </Button>
         <Button 
           variant="ghost" 
@@ -66,7 +69,7 @@ const ARViewControls = ({
           onClick={onSave}
         >
           <Save className="h-4 w-4 mr-2" />
-          Save
+          {!isMobile && "Save"}
         </Button>
       </div>
     </>
