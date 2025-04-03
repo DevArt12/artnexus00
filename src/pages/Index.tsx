@@ -16,7 +16,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Import mock data as fallback
-import { artworks as mockArtworks, artists, featuredArtists, getArtistById } from '@/data/mockData';
+import { artworks as mockArtworks, artists, getArtistById } from '@/data/mockData';
+
+// Define featured artist IDs
+const featuredArtistIds = ["1", "2", "3"];
 
 const fetchFeaturedArtworks = async () => {
   try {
@@ -42,8 +45,8 @@ const fetchFeaturedArtworks = async () => {
         artistId: item.artist_id,
         artist: item.profiles ? {
           id: item.profiles.id,
-          name: item.profiles.username,
-          profileImage: item.profiles.avatar,
+          name: item.profiles.username || 'Unknown Artist',
+          profileImage: item.profiles.avatar || 'https://via.placeholder.com/150'
         } : undefined
       }));
     }
@@ -196,7 +199,7 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredArtists.map((artistId) => {
+            {featuredArtistIds.map((artistId) => {
               const artist = artists.find((a) => a.id === artistId);
               if (!artist) return null;
               return <FeaturedArtist key={artist.id} artist={artist} />;

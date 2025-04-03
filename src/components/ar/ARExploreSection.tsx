@@ -5,9 +5,9 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Cube, ArrowRight, Image, ScanLine, Box } from 'lucide-react';
+import { Box3D, ArrowRight, Image, ScanLine, CubeIcon } from 'lucide-react';
 import { ARModel, MODEL_OPTIONS } from './ARModelSelector';
-import { Artwork, artworks } from '@/data/mockData';
+import { Artwork, artworks, getArtistById } from '@/data/mockData';
 
 const ARExploreSection = () => {
   const navigate = useNavigate();
@@ -116,7 +116,7 @@ const ARExploreSection = () => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center mb-4">
-                  <Cube className="h-5 w-5 mr-2 text-artnexus-purple" />
+                  <Box3D className="h-5 w-5 mr-2 text-artnexus-purple" />
                   <h3 className="text-xl font-semibold">3D Models</h3>
                 </div>
                 
@@ -162,6 +162,9 @@ const ARExploreSection = () => {
 
 // Component for displaying 2D artwork AR option
 const ArtworkARCard = ({ artwork, onClick }: { artwork: Artwork, onClick: () => void }) => {
+  // Get the artist information
+  const artist = getArtistById(artwork.artistId);
+  
   return (
     <motion.div 
       className="cursor-pointer rounded-lg overflow-hidden group"
@@ -183,7 +186,7 @@ const ArtworkARCard = ({ artwork, onClick }: { artwork: Artwork, onClick: () => 
       </div>
       <div className="mt-2">
         <h4 className="text-sm font-medium truncate">{artwork.title}</h4>
-        <p className="text-xs text-muted-foreground truncate">{artwork.artist?.name}</p>
+        <p className="text-xs text-muted-foreground truncate">{artist?.name}</p>
       </div>
     </motion.div>
   );
@@ -209,7 +212,7 @@ const ModelARCard = ({ model, onClick }: { model: ARModel, onClick: () => void }
         <h4 className="text-sm font-medium">{model.name}</h4>
         <p className="text-xs text-muted-foreground">{model.creator}</p>
       </div>
-      <Box className="h-4 w-4 text-muted-foreground" />
+      <CubeIcon className="h-4 w-4 text-muted-foreground" />
     </motion.div>
   );
 };
