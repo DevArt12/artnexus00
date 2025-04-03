@@ -1,8 +1,9 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { List } from 'lucide-react';
+import { List, CheckCircle } from 'lucide-react';
 import { toast } from "sonner";
+import { useState } from 'react';
 
 interface Collection {
   id: string;
@@ -28,6 +29,18 @@ const SaveToCollectionDialog = ({
   collections,
   onSaveToCollection
 }: SaveToCollectionDialogProps) => {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  
+  const handleSaveToCollection = (collectionId: string) => {
+    setSelectedId(collectionId);
+    
+    // Add a small delay to show the selection animation
+    setTimeout(() => {
+      onSaveToCollection(collectionId);
+      setSelectedId(null);
+    }, 500);
+  };
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -51,8 +64,8 @@ const SaveToCollectionDialog = ({
               {collections.map(collection => (
                 <div 
                   key={collection.id}
-                  className="flex items-center space-x-3 p-2 hover:bg-muted rounded-md cursor-pointer"
-                  onClick={() => onSaveToCollection(collection.id)}
+                  className={`flex items-center space-x-3 p-2 hover:bg-muted rounded-md cursor-pointer transition-all ${selectedId === collection.id ? 'bg-primary/10' : ''}`}
+                  onClick={() => handleSaveToCollection(collection.id)}
                 >
                   <div className="h-12 w-12 rounded overflow-hidden">
                     <img 
@@ -67,8 +80,14 @@ const SaveToCollectionDialog = ({
                       {collection.artworks.length} {collection.artworks.length === 1 ? 'artwork' : 'artworks'}
                     </p>
                   </div>
-                  <Button variant="ghost" size="sm">
-                    {collection.artworks.includes(artworkId) ? 'Added' : 'Add'}
+                  <Button variant="ghost" size="sm" className="pointer-events-none">
+                    {collection.artworks.includes(artworkId) ? (
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    ) : selectedId === collection.id ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    ) : (
+                      'Add'
+                    )}
                   </Button>
                 </div>
               ))}
