@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Box, Package, Info, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export interface ARModel {
   id: string;
@@ -211,6 +212,7 @@ const ModelCard = ({ model, isSelected, showDetails, onSelect, onOpenSketchfab }
           src={model.thumbnail} 
           alt={model.name}
           className="w-full h-full object-cover"
+          loading="lazy"
         />
         <Button 
           size="icon"

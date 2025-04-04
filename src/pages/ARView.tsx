@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -21,6 +20,8 @@ import ArtworkMeasurements, { ARMeasurement } from '@/components/ar/ArtworkMeasu
 import ARModelSelector, { MODEL_OPTIONS } from '@/components/ar/ARModelSelector';
 import EnvironmentSettings from '@/components/ar/EnvironmentSettings';
 import { useIsMobile } from '@/hooks/use-mobile';
+import SketchfabEmbed from '@/components/ar/SketchfabEmbed';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Collection {
   id: string;
@@ -219,21 +220,16 @@ const ARView = () => {
     }
   }, [artwork]);
 
-  // Helper function to convert image URLs to more compatible formats if needed
   const ensureCompatibleImageFormat = (url: string) => {
-    // If the URL already points to a PNG, just return it
     if (url.toLowerCase().endsWith('.png')) {
       return url;
     }
     
-    // If the image is from Unsplash, we can request a PNG directly by adding the right parameters
     if (url.includes('unsplash.com')) {
-      // Add format=png to the URL
       const separator = url.includes('?') ? '&' : '?';
       return `${url}${separator}fm=png`;
     }
     
-    // For other URLs, we'll set a flag so we know to handle it differently
     console.log('Non-PNG image detected, will handle with proxy or fallback:', url);
     return url;
   };
@@ -252,10 +248,8 @@ const ARView = () => {
       
       const container = document.getElementById('ar-view-container');
       if (container) {
-        // Remove previous video if exists
-        const existingVideo = document.getElementById('ar-camera-feed');
-        if (existingVideo) {
-          existingVideo.remove();
+        if (document.getElementById('ar-camera-feed')) {
+          document.getElementById('ar-camera-feed').remove();
         }
         
         container.prepend(videoElement);
@@ -421,22 +415,16 @@ const ARView = () => {
         
         const context = canvasElement.getContext('2d');
         if (context) {
-          // Draw the video feed
           context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
           
-          // Draw the artwork overlay on the screenshot if visible
           const artworkElement = document.getElementById('artwork-overlay');
           if (artworkElement && imageRef.current) {
-            // Instead of trying to draw the HTML element directly,
-            // we'll draw the image that's already loaded
             const rect = artworkElement.getBoundingClientRect();
             const img = imageRef.current;
             
-            // Calculate position to center the image over the video
             const x = (canvasElement.width - img.width) / 2;
             const y = (canvasElement.height - img.height) / 2;
             
-            // Apply transformations (scale, rotation)
             context.save();
             context.translate(canvasElement.width / 2, canvasElement.height / 2);
             context.rotate(rotation * Math.PI / 180);
@@ -447,7 +435,6 @@ const ARView = () => {
           }
           
           try {
-            // Convert to data URL and prompt download
             const dataUrl = canvasElement.toDataURL('image/png');
             const link = document.createElement('a');
             link.href = dataUrl;
@@ -588,9 +575,7 @@ const ARView = () => {
     setImageLoading(false);
     setImageError(true);
     
-    // If we have a retry option, let's use a fallback image
     if (artwork && retryCount === 0) {
-      // Let's try to use a fallback placeholder image
       const fallbackUrl = '/placeholder.svg';
       console.log('Falling back to placeholder image:', fallbackUrl);
       setProcessedImageUrl(fallbackUrl);
@@ -666,17 +651,15 @@ const ARView = () => {
                 >
                   {view3DMode ? (
                     <div className="w-full h-full">
-                      <iframe
-                        ref={iframeRef}
+                      <SketchfabEmbed
                         title={`3D Model - ${selectedModel.name}`}
-                        className="w-full h-full"
                         src={selectedModel.src}
-                        allow="autoplay; fullscreen; xr-spatial-tracking"
-                        allowFullScreen
-                        loading="eager"
-                        onLoad={() => console.log("3D model iframe loaded")}
-                        onError={() => console.error("3D model iframe failed to load")}
-                      ></iframe>
+                        onLoad={() => console.log("3D model loaded successfully")}
+                        onError={() => {
+                          console.error("3D model failed to load");
+                          toast.error("Failed to load 3D model. Please try another model.");
+                        }}
+                      />
                     </div>
                   ) : (
                     <div 
@@ -686,7 +669,6 @@ const ARView = () => {
                         backgroundImage: (!cameraActive && !imageLoading && !imageError) ? `url(${processedImageUrl || getArtworkImageUrl()})` : 'none',
                         backgroundColor: cameraActive ? 'transparent' : wallColor,
                         backgroundSize: 'contain',
-                        // Combine all transforms into a single property
                         transform: cameraActive ? 
                           undefined : 
                           `scale(${zoomLevel}) rotate(${rotation}deg) translate(${position.x}px, ${position.y}px)`
@@ -721,7 +703,6 @@ const ARView = () => {
                           alt={artwork.title}
                           className="max-h-full max-w-full object-contain"
                           style={{ 
-                            // Fixed: removed duplicate transform property
                             position: 'absolute',
                             left: `calc(50% + ${position.x}px)`,
                             top: `calc(50% + ${position.y}px)`,
