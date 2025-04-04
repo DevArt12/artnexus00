@@ -56,9 +56,11 @@ const ARView = () => {
   const [view3DMode, setView3DMode] = useState(false);
   const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[0]);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
   const isMobile = useIsMobile();
-  
+
   const { isLoading, error } = useQuery({
     queryKey: ['artwork', id],
     queryFn: async () => {
@@ -142,7 +144,7 @@ const ARView = () => {
     },
     enabled: !!id
   });
-  
+
   useEffect(() => {
     const checkARSupport = () => {
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -194,7 +196,7 @@ const ARView = () => {
     
     updateRecentlyViewed();
   }, [id]);
-  
+
   useEffect(() => {
     if (artwork) {
       const recommended = getRecommendedArtworks(artwork.id, 5);
@@ -203,7 +205,7 @@ const ARView = () => {
       setSuggestedArtworks([]);
     }
   }, [artwork]);
-  
+
   const handleActivateAR = () => {
     if (isARSupported) {
       setArViewActive(true);
@@ -225,7 +227,7 @@ const ARView = () => {
       }
     }
   };
-  
+
   const toggle3DView = (value: boolean) => {
     setView3DMode(value);
     setArViewActive(true);
@@ -236,7 +238,7 @@ const ARView = () => {
       toast.success("2D artwork view activated");
     }
   };
-  
+
   const changeModel = (model: typeof MODEL_OPTIONS[0]) => {
     setSelectedModel(model);
     toast.success(`Selected 3D model: ${model.name}`);
@@ -251,7 +253,7 @@ const ARView = () => {
       }, 100);
     }
   };
-  
+
   const handleWallScan = () => {
     setWallScanActive(true);
     
@@ -264,44 +266,72 @@ const ARView = () => {
       setWallColor('#f2f2f2');
     }, 3000);
   };
-  
+
   const handleZoomIn = () => {
     setZoomLevel(prev => Math.min(prev + 0.2, 2.5));
   };
-  
+
   const handleZoomOut = () => {
     setZoomLevel(prev => Math.max(prev - 0.2, 0.5));
   };
-  
+
   const handleReset = () => {
     setZoomLevel(1);
     setRotation(0);
     setPosition({ x: 0, y: 0 });
   };
-  
+
   const handleRotateLeft = () => {
     setRotation(prev => prev - 15);
   };
-  
+
   const handleRotateRight = () => {
     setRotation(prev => prev + 15);
   };
-  
+
   const handleMove = (dx: number, dy: number) => {
     setPosition(prev => ({
       x: prev.x + dx,
       y: prev.y + dy
     }));
   };
-  
+
+  const handleMoveUp = () => {
+    setPosition(prev => ({
+      x: prev.x,
+      y: prev.y - 10
+    }));
+  };
+
+  const handleMoveDown = () => {
+    setPosition(prev => ({
+      x: prev.x,
+      y: prev.y + 10
+    }));
+  };
+
+  const handleMoveLeft = () => {
+    setPosition(prev => ({
+      x: prev.x - 10,
+      y: prev.y
+    }));
+  };
+
+  const handleMoveRight = () => {
+    setPosition(prev => ({
+      x: prev.x + 10,
+      y: prev.y
+    }));
+  };
+
   const takeScreenshot = () => {
     toast.success("Screenshot saved to your gallery!");
   };
-  
+
   const viewOtherArtwork = (artworkId: string) => {
     navigate(`/ar-view/${artworkId}`);
   };
-  
+
   const addToCollection = (collectionId: string) => {
     if (!id) return;
     
@@ -330,7 +360,7 @@ const ARView = () => {
     
     setShowCollectionDialog(false);
   };
-  
+
   const handleChangeEnvironment = (env: string) => {
     setRoomEnvironment(env);
     
@@ -353,12 +383,12 @@ const ARView = () => {
     
     toast.success(`Environment changed to ${env} room`);
   };
-  
+
   const handleChangeLighting = (lighting: string) => {
     setLightingCondition(lighting);
     toast.success(`Lighting condition updated to ${lighting}`);
   };
-  
+
   const getWallBackground = () => {
     let bgStyle = `background-color: ${wallColor};`;
     
@@ -403,7 +433,33 @@ const ARView = () => {
     
     return bgStyle;
   };
-  
+
+  const ensurePngFormat = (url: string) => {
+    if (url.toLowerCase().endsWith('.png')) {
+      return url;
+    }
+    
+    console.log('Non-PNG image detected:', url);
+    return url;
+  };
+
+  const getArtworkImageUrl = () => {
+    if (!artwork) return '';
+    return ensurePngFormat(artwork.image);
+  };
+
+  const handleImageLoad = () => {
+    console.log('Image loaded successfully');
+    setImageLoading(false);
+    setImageError(false);
+  };
+
+  const handleImageError = () => {
+    console.error('Error loading image:', artwork?.image);
+    setImageLoading(false);
+    setImageError(true);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -415,7 +471,7 @@ const ARView = () => {
       </div>
     );
   }
-  
+
   if (error || !artwork) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -433,7 +489,7 @@ const ARView = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -475,12 +531,41 @@ const ARView = () => {
                     <div 
                       className="w-full h-full bg-center bg-no-repeat flex items-center justify-center transition-all"
                       style={{ 
-                        backgroundImage: `url(${artwork.image})`,
+                        backgroundImage: imageLoading || imageError ? 'none' : `url(${getArtworkImageUrl()})`,
                         transform: `scale(${zoomLevel}) rotate(${rotation}deg) translate(${position.x}px, ${position.y}px)`,
                         backgroundColor: wallColor,
                         backgroundSize: 'contain'
                       }}
-                    ></div>
+                    >
+                      {imageLoading && (
+                        <div className="flex flex-col items-center justify-center h-full">
+                          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+                          <p className="text-white mt-4">Loading artwork...</p>
+                        </div>
+                      )}
+                      {imageError && (
+                        <div className="flex flex-col items-center justify-center h-full">
+                          <p className="text-white">Failed to load image</p>
+                          <Button 
+                            variant="outline" 
+                            className="mt-4" 
+                            onClick={() => {
+                              setImageLoading(true);
+                              setImageError(false);
+                            }}
+                          >
+                            Retry
+                          </Button>
+                        </div>
+                      )}
+                      <img 
+                        src={getArtworkImageUrl()} 
+                        alt={artwork.title}
+                        className="hidden"
+                        onLoad={handleImageLoad}
+                        onError={handleImageError}
+                      />
+                    </div>
                   )}
                   
                   <ARViewControls
@@ -491,6 +576,10 @@ const ARView = () => {
                     onReset={handleReset}
                     onTakeScreenshot={takeScreenshot}
                     onSave={() => setShowCollectionDialog(true)}
+                    onMoveUp={handleMoveUp}
+                    onMoveDown={handleMoveDown}
+                    onMoveLeft={handleMoveLeft}
+                    onMoveRight={handleMoveRight}
                   />
                   
                   {!view3DMode && (
@@ -503,10 +592,32 @@ const ARView = () => {
                 </div>
               ) : (
                 <div className="relative bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden aspect-video flex items-center justify-center">
+                  {imageLoading && (
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                      <p className="text-muted-foreground mt-4">Loading artwork...</p>
+                    </div>
+                  )}
+                  {imageError && (
+                    <div className="text-center">
+                      <p className="text-red-500 mb-2">Failed to load image</p>
+                      <Button 
+                        variant="outline"
+                        onClick={() => {
+                          setImageLoading(true);
+                          setImageError(false);
+                        }}
+                      >
+                        Retry
+                      </Button>
+                    </div>
+                  )}
                   <img 
-                    src={artwork.image} 
+                    src={getArtworkImageUrl()} 
                     alt={artwork.title} 
-                    className="max-h-full max-w-full object-contain"
+                    className={`max-h-full max-w-full object-contain ${imageLoading || imageError ? 'hidden' : ''}`}
+                    onLoad={handleImageLoad}
+                    onError={handleImageError}
                   />
                 </div>
               )}
