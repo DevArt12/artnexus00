@@ -421,13 +421,29 @@ const ARView = () => {
         
         const context = canvasElement.getContext('2d');
         if (context) {
+          // Draw the video feed
           context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
           
           // Draw the artwork overlay on the screenshot if visible
           const artworkElement = document.getElementById('artwork-overlay');
-          if (artworkElement) {
+          if (artworkElement && imageRef.current) {
+            // Instead of trying to draw the HTML element directly,
+            // we'll draw the image that's already loaded
             const rect = artworkElement.getBoundingClientRect();
-            context.drawImage(artworkElement, rect.left, rect.top, rect.width, rect.height);
+            const img = imageRef.current;
+            
+            // Calculate position to center the image over the video
+            const x = (canvasElement.width - img.width) / 2;
+            const y = (canvasElement.height - img.height) / 2;
+            
+            // Apply transformations (scale, rotation)
+            context.save();
+            context.translate(canvasElement.width / 2, canvasElement.height / 2);
+            context.rotate(rotation * Math.PI / 180);
+            context.scale(zoomLevel, zoomLevel);
+            context.translate(-img.width / 2, -img.height / 2);
+            context.drawImage(img, 0, 0, img.width, img.height);
+            context.restore();
           }
           
           try {
@@ -668,9 +684,12 @@ const ARView = () => {
                       className={`w-full h-full ${cameraActive ? 'relative z-10' : ''} bg-center bg-no-repeat flex items-center justify-center transition-all`}
                       style={{ 
                         backgroundImage: (!cameraActive && !imageLoading && !imageError) ? `url(${processedImageUrl || getArtworkImageUrl()})` : 'none',
-                        transform: `scale(${zoomLevel}) rotate(${rotation}deg) translate(${position.x}px, ${position.y}px)`,
                         backgroundColor: cameraActive ? 'transparent' : wallColor,
-                        backgroundSize: 'contain'
+                        backgroundSize: 'contain',
+                        // Combine all transforms into a single property
+                        transform: cameraActive ? 
+                          undefined : 
+                          `scale(${zoomLevel}) rotate(${rotation}deg) translate(${position.x}px, ${position.y}px)`
                       }}
                     >
                       {!cameraActive && (
@@ -702,7 +721,7 @@ const ARView = () => {
                           alt={artwork.title}
                           className="max-h-full max-w-full object-contain"
                           style={{ 
-                            transform: `scale(${zoomLevel}) rotate(${rotation}deg)`,
+                            // Fixed: removed duplicate transform property
                             position: 'absolute',
                             left: `calc(50% + ${position.x}px)`,
                             top: `calc(50% + ${position.y}px)`,
