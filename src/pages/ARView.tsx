@@ -19,7 +19,7 @@ import ARViewControls from '@/components/ar/ARViewControls';
 import ArtworkMeasurements, { ARMeasurement } from '@/components/ar/ArtworkMeasurements';
 import ARModelSelector, { MODEL_OPTIONS } from '@/components/ar/ARModelSelector';
 import EnvironmentSettings from '@/components/ar/EnvironmentSettings';
-import { useIsMobile } from '@/hooks/useIsMobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Collection {
   id: string;
