@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -792,8 +793,6 @@ const ARView = () => {
               )}
             </div>
             
-            
-            
             <div>
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
                 <h2 className="text-xl font-semibold mb-4">{artwork.title}</h2>
@@ -883,7 +882,6 @@ const ARView = () => {
                     )}
                   </TabsContent>
                   
-                  
                   <TabsContent value="3d">
                     <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
                       Explore artworks as 3D models or in a virtual environment.
@@ -913,5 +911,17 @@ const ARView = () => {
                         <span className="text-xs md:text-sm">3D Model View</span>
                       </Button>
                     </div>
-                    
-                    <div className="mt
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <Footer />
+    </div>
+  );
+};
+
+export default ARView;
