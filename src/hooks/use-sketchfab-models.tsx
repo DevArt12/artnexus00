@@ -37,7 +37,9 @@ export const useSketchfabModels = (options?: UseSketchfabModelsOptions) => {
     if (options?.onModelLoadComplete) {
       options.onModelLoadComplete();
     }
-    toast.success(`${currentModel?.name} loaded successfully!`);
+    if (currentModel) {
+      toast.success(`${currentModel.name} loaded successfully!`);
+    }
   };
 
   const handleModelError = () => {

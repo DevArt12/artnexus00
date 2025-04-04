@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -22,6 +23,7 @@ import EnvironmentSettings from '@/components/ar/EnvironmentSettings';
 import { useIsMobile } from '@/hooks/use-mobile';
 import SketchfabEmbed from '@/components/ar/SketchfabEmbed';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSketchfabModels } from '@/hooks/use-sketchfab-models';
 
 interface Collection {
   id: string;
@@ -57,7 +59,6 @@ const ARView = () => {
   const [lightingCondition, setLightingCondition] = useState('daylight');
   const [view3DMode, setView3DMode] = useState(false);
   const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[0]);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
@@ -66,6 +67,18 @@ const ARView = () => {
   const [retryCount, setRetryCount] = useState(0);
 
   const isMobile = useIsMobile();
+  
+  const { isLoading: modelIsLoading, currentModel, changeModel, handleModelLoaded, handleModelError } = useSketchfabModels({
+    onModelLoadStart: () => {
+      toast.info(`Loading ${selectedModel.name}...`);
+    },
+    onModelLoadComplete: () => {
+      toast.success(`Model loaded successfully!`);
+    },
+    onModelLoadError: (error) => {
+      toast.error(`Failed to load model: ${error.message}`);
+    }
+  });
 
   const { isLoading, error } = useQuery({
     queryKey: ['artwork', id, retryCount],
@@ -313,25 +326,16 @@ const ARView = () => {
     setArViewActive(true);
     
     if (value) {
+      changeModel(selectedModel);
       toast.success("3D model view activated!");
     } else {
       toast.success("2D artwork view activated");
     }
   };
 
-  const changeModel = (model: typeof MODEL_OPTIONS[0]) => {
+  const handleModelChange = (model: typeof MODEL_OPTIONS[0]) => {
     setSelectedModel(model);
-    toast.success(`Selected 3D model: ${model.name}`);
-    
-    if (iframeRef.current) {
-      const currentSrc = iframeRef.current.src;
-      iframeRef.current.src = '';
-      setTimeout(() => {
-        if (iframeRef.current) {
-          iframeRef.current.src = model.src;
-        }
-      }, 100);
-    }
+    changeModel(model);
   };
 
   const handleWallScan = () => {
@@ -417,11 +421,9 @@ const ARView = () => {
         if (context) {
           context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
           
-          const artworkElement = document.getElementById('artwork-overlay');
-          if (artworkElement && imageRef.current) {
-            const rect = artworkElement.getBoundingClientRect();
-            const img = imageRef.current;
-            
+          // Draw the artwork overlay on the screenshot if visible
+          const img = imageRef.current;
+          if (img) {
             const x = (canvasElement.width - img.width) / 2;
             const y = (canvasElement.height - img.height) / 2;
             
@@ -435,6 +437,7 @@ const ARView = () => {
           }
           
           try {
+            // Convert to data URL and prompt download
             const dataUrl = canvasElement.toDataURL('image/png');
             const link = document.createElement('a');
             link.href = dataUrl;
@@ -575,7 +578,9 @@ const ARView = () => {
     setImageLoading(false);
     setImageError(true);
     
+    // If we have a retry option, let's use a fallback image
     if (artwork && retryCount === 0) {
+      // Let's try to use a fallback placeholder image
       const fallbackUrl = '/placeholder.svg';
       console.log('Falling back to placeholder image:', fallbackUrl);
       setProcessedImageUrl(fallbackUrl);
@@ -654,11 +659,8 @@ const ARView = () => {
                       <SketchfabEmbed
                         title={`3D Model - ${selectedModel.name}`}
                         src={selectedModel.src}
-                        onLoad={() => console.log("3D model loaded successfully")}
-                        onError={() => {
-                          console.error("3D model failed to load");
-                          toast.error("Failed to load 3D model. Please try another model.");
-                        }}
+                        onLoad={handleModelLoaded}
+                        onError={handleModelError}
                       />
                     </div>
                   ) : (
@@ -669,9 +671,7 @@ const ARView = () => {
                         backgroundImage: (!cameraActive && !imageLoading && !imageError) ? `url(${processedImageUrl || getArtworkImageUrl()})` : 'none',
                         backgroundColor: cameraActive ? 'transparent' : wallColor,
                         backgroundSize: 'contain',
-                        transform: cameraActive ? 
-                          undefined : 
-                          `scale(${zoomLevel}) rotate(${rotation}deg) translate(${position.x}px, ${position.y}px)`
+                        transform: `scale(${zoomLevel}) rotate(${rotation}deg) translate(${position.x}px, ${position.y}px)`
                       }}
                     >
                       {!cameraActive && (
@@ -788,7 +788,7 @@ const ARView = () => {
                 <ARModelSelector
                   models={MODEL_OPTIONS}
                   selectedModel={selectedModel}
-                  onModelChange={changeModel}
+                  onModelChange={handleModelChange}
                 />
               )}
             </div>
