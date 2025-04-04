@@ -58,11 +58,15 @@ const ARView = () => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   const isMobile = useIsMobile();
 
   const { isLoading, error } = useQuery({
-    queryKey: ['artwork', id],
+    queryKey: ['artwork', id, retryCount],
     queryFn: async () => {
       if (!id || id === ':id') {
         console.log("Invalid artwork ID, using mock data");
@@ -149,7 +153,8 @@ const ARView = () => {
     const checkARSupport = () => {
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       const hasMotionSensors = 'DeviceMotionEvent' in window || 'DeviceOrientationEvent' in window;
-      setIsARSupported(isMobile && hasMotionSensors);
+      const hasCamera = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+      setIsARSupported(isMobile && hasMotionSensors && !!hasCamera);
     };
     
     checkARSupport();
@@ -195,6 +200,13 @@ const ARView = () => {
     };
     
     updateRecentlyViewed();
+    
+    return () => {
+      // Clean up camera when component unmounts
+      if (cameraActive) {
+        disableCamera();
+      }
+    };
   }, [id]);
 
   useEffect(() => {
@@ -205,6 +217,79 @@ const ARView = () => {
       setSuggestedArtworks([]);
     }
   }, [artwork]);
+
+  // Helper function to convert image URLs to more compatible formats if needed
+  const ensureCompatibleImageFormat = (url: string) => {
+    // If the URL already points to a PNG, just return it
+    if (url.toLowerCase().endsWith('.png')) {
+      return url;
+    }
+    
+    // If the image is from Unsplash, we can request a PNG directly by adding the right parameters
+    if (url.includes('unsplash.com')) {
+      // Add format=png to the URL
+      const separator = url.includes('?') ? '&' : '?';
+      return `${url}${separator}fm=png`;
+    }
+    
+    // For other URLs, we'll set a flag so we know to handle it differently
+    console.log('Non-PNG image detected, will handle with proxy or fallback:', url);
+    return url;
+  };
+
+  const activateCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: "environment" } 
+      });
+      
+      const videoElement = document.createElement('video');
+      videoElement.srcObject = stream;
+      videoElement.id = 'ar-camera-feed';
+      videoElement.autoplay = true;
+      videoElement.className = 'absolute inset-0 w-full h-full object-cover';
+      
+      const container = document.getElementById('ar-view-container');
+      if (container) {
+        // Remove previous video if exists
+        const existingVideo = document.getElementById('ar-camera-feed');
+        if (existingVideo) {
+          existingVideo.remove();
+        }
+        
+        container.prepend(videoElement);
+        setCameraActive(true);
+        toast.success("Camera activated!");
+      }
+    } catch (err) {
+      console.error('Error accessing camera:', err);
+      toast.error("Failed to access camera. Please check permissions.");
+      setCameraActive(false);
+    }
+  };
+
+  const disableCamera = () => {
+    const videoElement = document.getElementById('ar-camera-feed') as HTMLVideoElement;
+    if (videoElement && videoElement.srcObject) {
+      const stream = videoElement.srcObject as MediaStream;
+      const tracks = stream.getTracks();
+      
+      tracks.forEach(track => {
+        track.stop();
+      });
+      
+      videoElement.remove();
+      setCameraActive(false);
+    }
+  };
+
+  const toggleCamera = () => {
+    if (cameraActive) {
+      disableCamera();
+    } else {
+      activateCamera();
+    }
+  };
 
   const handleActivateAR = () => {
     if (isARSupported) {
@@ -325,7 +410,43 @@ const ARView = () => {
   };
 
   const takeScreenshot = () => {
-    toast.success("Screenshot saved to your gallery!");
+    if (cameraActive) {
+      const videoElement = document.getElementById('ar-camera-feed') as HTMLVideoElement;
+      const canvasElement = document.createElement('canvas');
+      
+      if (videoElement) {
+        canvasElement.width = videoElement.videoWidth;
+        canvasElement.height = videoElement.videoHeight;
+        
+        const context = canvasElement.getContext('2d');
+        if (context) {
+          context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+          
+          // Draw the artwork overlay on the screenshot if visible
+          const artworkElement = document.getElementById('artwork-overlay');
+          if (artworkElement) {
+            const rect = artworkElement.getBoundingClientRect();
+            context.drawImage(artworkElement, rect.left, rect.top, rect.width, rect.height);
+          }
+          
+          try {
+            // Convert to data URL and prompt download
+            const dataUrl = canvasElement.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = `ar-view-${new Date().getTime()}.png`;
+            link.click();
+            
+            toast.success("Screenshot saved to your downloads!");
+          } catch (err) {
+            console.error('Error creating screenshot:', err);
+            toast.error("Failed to create screenshot");
+          }
+        }
+      }
+    } else {
+      toast.success("Screenshot saved to your gallery!");
+    }
   };
 
   const viewOtherArtwork = (artworkId: string) => {
@@ -434,18 +555,9 @@ const ARView = () => {
     return bgStyle;
   };
 
-  const ensurePngFormat = (url: string) => {
-    if (url.toLowerCase().endsWith('.png')) {
-      return url;
-    }
-    
-    console.log('Non-PNG image detected:', url);
-    return url;
-  };
-
   const getArtworkImageUrl = () => {
     if (!artwork) return '';
-    return ensurePngFormat(artwork.image);
+    return ensureCompatibleImageFormat(artwork.image);
   };
 
   const handleImageLoad = () => {
@@ -458,6 +570,22 @@ const ARView = () => {
     console.error('Error loading image:', artwork?.image);
     setImageLoading(false);
     setImageError(true);
+    
+    // If we have a retry option, let's use a fallback image
+    if (artwork && retryCount === 0) {
+      // Let's try to use a fallback placeholder image
+      const fallbackUrl = '/placeholder.svg';
+      console.log('Falling back to placeholder image:', fallbackUrl);
+      setProcessedImageUrl(fallbackUrl);
+      setRetryCount(retryCount + 1);
+    }
+  };
+
+  const retryLoadImage = () => {
+    setImageLoading(true);
+    setImageError(false);
+    setProcessedImageUrl(null);
+    setRetryCount(retryCount + 1);
   };
 
   if (isLoading) {
@@ -465,7 +593,10 @@ const ARView = () => {
       <div className="min-h-screen flex flex-col">
         <Navbar />
         <div className="text-center py-12 flex-grow">
-          <p>Loading artwork...</p>
+          <div className="flex flex-col items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            <p className="mt-4">Loading artwork...</p>
+          </div>
         </div>
         <Footer />
       </div>
@@ -512,7 +643,10 @@ const ARView = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
             <div className="lg:col-span-2">
               {arViewActive ? (
-                <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
+                <div 
+                  id="ar-view-container"
+                  className="relative bg-black rounded-lg overflow-hidden aspect-video"
+                >
                   {view3DMode ? (
                     <div className="w-full h-full">
                       <iframe
@@ -529,37 +663,56 @@ const ARView = () => {
                     </div>
                   ) : (
                     <div 
-                      className="w-full h-full bg-center bg-no-repeat flex items-center justify-center transition-all"
+                      id="artwork-overlay"
+                      className={`w-full h-full ${cameraActive ? 'relative z-10' : ''} bg-center bg-no-repeat flex items-center justify-center transition-all`}
                       style={{ 
-                        backgroundImage: imageLoading || imageError ? 'none' : `url(${getArtworkImageUrl()})`,
+                        backgroundImage: (!cameraActive && !imageLoading && !imageError) ? `url(${processedImageUrl || getArtworkImageUrl()})` : 'none',
                         transform: `scale(${zoomLevel}) rotate(${rotation}deg) translate(${position.x}px, ${position.y}px)`,
-                        backgroundColor: wallColor,
+                        backgroundColor: cameraActive ? 'transparent' : wallColor,
                         backgroundSize: 'contain'
                       }}
                     >
-                      {imageLoading && (
-                        <div className="flex flex-col items-center justify-center h-full">
-                          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
-                          <p className="text-white mt-4">Loading artwork...</p>
-                        </div>
+                      {!cameraActive && (
+                        <>
+                          {imageLoading && (
+                            <div className="flex flex-col items-center justify-center h-full">
+                              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+                              <p className="text-white mt-4">Loading artwork...</p>
+                            </div>
+                          )}
+                          {imageError && (
+                            <div className="flex flex-col items-center justify-center h-full">
+                              <p className="text-white">Failed to load image</p>
+                              <Button 
+                                variant="outline" 
+                                className="mt-4" 
+                                onClick={retryLoadImage}
+                              >
+                                Retry
+                              </Button>
+                            </div>
+                          )}
+                        </>
                       )}
-                      {imageError && (
-                        <div className="flex flex-col items-center justify-center h-full">
-                          <p className="text-white">Failed to load image</p>
-                          <Button 
-                            variant="outline" 
-                            className="mt-4" 
-                            onClick={() => {
-                              setImageLoading(true);
-                              setImageError(false);
-                            }}
-                          >
-                            Retry
-                          </Button>
-                        </div>
+                      
+                      {cameraActive && !imageLoading && !imageError && (
+                        <img 
+                          src={processedImageUrl || getArtworkImageUrl()} 
+                          alt={artwork.title}
+                          className="max-h-full max-w-full object-contain"
+                          style={{ 
+                            transform: `scale(${zoomLevel}) rotate(${rotation}deg)`,
+                            position: 'absolute',
+                            left: `calc(50% + ${position.x}px)`,
+                            top: `calc(50% + ${position.y}px)`,
+                            transform: `translate(-50%, -50%) scale(${zoomLevel}) rotate(${rotation}deg)`
+                          }}
+                        />
                       )}
+                      
                       <img 
-                        src={getArtworkImageUrl()} 
+                        ref={imageRef}
+                        src={processedImageUrl || getArtworkImageUrl()} 
                         alt={artwork.title}
                         className="hidden"
                         onLoad={handleImageLoad}
@@ -580,6 +733,8 @@ const ARView = () => {
                     onMoveDown={handleMoveDown}
                     onMoveLeft={handleMoveLeft}
                     onMoveRight={handleMoveRight}
+                    cameraActive={cameraActive}
+                    onToggleCamera={isARSupported ? toggleCamera : undefined}
                   />
                   
                   {!view3DMode && (
@@ -603,17 +758,14 @@ const ARView = () => {
                       <p className="text-red-500 mb-2">Failed to load image</p>
                       <Button 
                         variant="outline"
-                        onClick={() => {
-                          setImageLoading(true);
-                          setImageError(false);
-                        }}
+                        onClick={retryLoadImage}
                       >
                         Retry
                       </Button>
                     </div>
                   )}
                   <img 
-                    src={getArtworkImageUrl()} 
+                    src={processedImageUrl || getArtworkImageUrl()} 
                     alt={artwork.title} 
                     className={`max-h-full max-w-full object-contain ${imageLoading || imageError ? 'hidden' : ''}`}
                     onLoad={handleImageLoad}
@@ -639,6 +791,8 @@ const ARView = () => {
                 />
               )}
             </div>
+            
+            
             
             <div>
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
@@ -690,6 +844,19 @@ const ARView = () => {
                         </span>
                       </Button>
                       
+                      {arViewActive && !view3DMode && isARSupported && (
+                        <Button 
+                          className="w-full" 
+                          variant={cameraActive ? "default" : "outline"}
+                          onClick={toggleCamera}
+                        >
+                          <Camera className="h-4 w-4 mr-2" />
+                          <span className="text-xs md:text-sm">
+                            {cameraActive ? 'Disable Camera' : 'Enable Camera'}
+                          </span>
+                        </Button>
+                      )}
+                      
                       {arViewActive && !view3DMode && (
                         <Button 
                           className="w-full" 
@@ -715,6 +882,7 @@ const ARView = () => {
                       </div>
                     )}
                   </TabsContent>
+                  
                   
                   <TabsContent value="3d">
                     <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
@@ -746,165 +914,4 @@ const ARView = () => {
                       </Button>
                     </div>
                     
-                    <div className="mt-4 space-y-2">
-                      <p className="text-xs md:text-sm font-medium">Virtual Features:</p>
-                      <ul className="text-xs md:text-sm text-muted-foreground space-y-1">
-                        <li className="flex items-center">
-                          <CheckCircle className="h-3 w-3 mr-2 text-green-500" />
-                          Interact with 3D models
-                        </li>
-                        <li className="flex items-center">
-                          <CheckCircle className="h-3 w-3 mr-2 text-green-500" />
-                          Adjust artwork size and position
-                        </li>
-                        <li className="flex items-center">
-                          <CheckCircle className="h-3 w-3 mr-2 text-green-500" />
-                          Test different room environments
-                        </li>
-                      </ul>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-                
-                <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t space-y-2 md:space-y-3">
-                  <Button variant="outline" className="w-full justify-between text-xs md:text-sm" onClick={() => setShowCollectionDialog(true)}>
-                    <span className="flex items-center">
-                      <List className="h-4 w-4 mr-2" />
-                      Add to Collection
-                    </span>
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                      {collections.length}
-                    </span>
-                  </Button>
-                  
-                  <Button variant="outline" className="w-full justify-start text-xs md:text-sm">
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Share AR View
-                  </Button>
-                  
-                  <Button variant="ghost" className="w-full justify-start text-xs md:text-sm" asChild>
-                    <a href={`/artwork/${id}`}>
-                      <Image className="h-4 w-4 mr-2" />
-                      Back to Artwork Details
-                    </a>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Try More Artworks in AR</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
-              {suggestedArtworks.slice(0, isMobile ? 4 : 5).map((suggestedArt) => (
-                <div 
-                  key={suggestedArt.id} 
-                  className="cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => viewOtherArtwork(suggestedArt.id)}
-                >
-                  <div className="aspect-square rounded-md overflow-hidden mb-2">
-                    <img 
-                      src={suggestedArt.image} 
-                      alt={suggestedArt.title} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <p className="text-xs md:text-sm font-medium truncate">{suggestedArt.title}</p>
-                  <p className="text-xs text-muted-foreground truncate">{suggestedArt.categories.join(', ')}</p>
-                </div>
-              ))}
-            </div>
-            {isMobile && suggestedArtworks.length > 4 && (
-              <Button variant="ghost" className="w-full mt-4 text-xs">
-                View All Suggestions
-              </Button>
-            )}
-          </div>
-          
-          {recentlyViewed.length > 1 && (!isMobile || true) && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-4">Recently Viewed</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
-                {recentlyViewed.slice(1, isMobile ? 3 : 6).map((recentArt) => (
-                  <div 
-                    key={recentArt.id} 
-                    className="cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => viewOtherArtwork(recentArt.id)}
-                  >
-                    <div className="aspect-square rounded-md overflow-hidden mb-2">
-                      <img 
-                        src={recentArt.image} 
-                        alt={recentArt.title} 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <p className="text-xs md:text-sm font-medium truncate">{recentArt.title}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-      
-      <Dialog open={showCollectionDialog} onOpenChange={setShowCollectionDialog}>
-        <DialogContent className="sm:max-w-md max-w-[90vw] md:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Save to Collection</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            {collections.length === 0 ? (
-              <div className="text-center py-8">
-                <List className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-4">You don't have any collections yet.</p>
-                <Button 
-                  asChild
-                  onClick={() => setShowCollectionDialog(false)}
-                >
-                  <a href="/collections">Create Collection</a>
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {collections.map(collection => (
-                  <div 
-                    key={collection.id}
-                    className="flex items-center space-x-3 p-2 hover:bg-muted rounded-md cursor-pointer"
-                    onClick={() => addToCollection(collection.id)}
-                  >
-                    <div className="h-12 w-12 rounded overflow-hidden">
-                      <img 
-                        src={collection.coverImage} 
-                        alt={collection.name} 
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium">{collection.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {collection.artworks.length} {collection.artworks.length === 1 ? 'artwork' : 'artworks'}
-                      </p>
-                    </div>
-                    <Button variant="ghost" size="sm">
-                      {collection.artworks.includes(id!) ? 'Added' : 'Add'}
-                    </Button>
-                  </div>
-                ))}
-                
-                <div className="pt-2 text-center">
-                  <Button variant="outline" asChild>
-                    <a href="/collections">Manage Collections</a>
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-      
-      <Footer />
-    </div>
-  );
-};
-
-export default ARView;
+                    <div className="mt

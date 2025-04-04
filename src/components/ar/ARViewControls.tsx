@@ -19,6 +19,8 @@ interface ARViewControlsProps {
   onMoveDown?: () => void;
   onMoveLeft?: () => void;
   onMoveRight?: () => void;
+  cameraActive?: boolean;
+  onToggleCamera?: () => void;
 }
 
 const ARViewControls = ({
@@ -32,7 +34,9 @@ const ARViewControls = ({
   onMoveUp,
   onMoveDown,
   onMoveLeft,
-  onMoveRight
+  onMoveRight,
+  cameraActive = false,
+  onToggleCamera
 }: ARViewControlsProps) => {
   const isMobile = useIsMobile();
   
@@ -82,6 +86,17 @@ const ARViewControls = ({
       </div>
       
       <div className={`absolute top-4 left-4 flex gap-2 ${isMobile ? 'scale-75 -ml-2 flex-col' : ''}`}>
+        {onToggleCamera && (
+          <Button
+            variant="ghost"
+            className={`h-8 ${cameraActive ? 'bg-green-500/70' : 'bg-black/40'} backdrop-blur-sm text-white hover:bg-black/60`}
+            onClick={onToggleCamera}
+            aria-label={cameraActive ? "Camera active" : "Activate camera"}
+          >
+            <Camera className="h-4 w-4 mr-2" />
+            {!isMobile && (cameraActive ? "Camera On" : "Activate Camera")}
+          </Button>
+        )}
         <Button 
           variant="ghost" 
           className="h-8 bg-black/40 backdrop-blur-sm text-white hover:bg-black/60"
