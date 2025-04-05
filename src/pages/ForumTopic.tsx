@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,7 +24,6 @@ const ForumTopic = () => {
   const [user, setUser] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   
-  // Check authentication status
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -40,7 +38,6 @@ const ForumTopic = () => {
     
     checkAuth();
     
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setIsAuthenticated(!!session?.user);
@@ -51,14 +48,12 @@ const ForumTopic = () => {
     return () => subscription.unsubscribe();
   }, []);
   
-  // Fetch topic and posts data from Supabase
   useEffect(() => {
     const fetchTopicData = async () => {
       if (!id) return;
       
       setIsLoading(true);
       try {
-        // Fetch topic data
         const { data: topic, error: topicError } = await supabase
           .from('forum_topics')
           .select(`
@@ -78,7 +73,6 @@ const ForumTopic = () => {
         
         if (topicError) throw topicError;
         
-        // Fetch first post (topic content)
         const { data: firstPost, error: firstPostError } = await supabase
           .from('forum_posts')
           .select(`
@@ -98,7 +92,6 @@ const ForumTopic = () => {
         
         if (firstPostError) throw firstPostError;
         
-        // Fetch replies
         const { data: replies, error: repliesError } = await supabase
           .from('forum_posts')
           .select(`
@@ -113,16 +106,34 @@ const ForumTopic = () => {
           `)
           .eq('topic_id', id)
           .order('created_at', { ascending: true })
-          .range(1, 100); // Skip the first post which is the topic content
+          .range(1, 100);
         
         if (repliesError) throw repliesError;
+        
+        const extractProfileData = (profiles: any) => {
+          if (Array.isArray(profiles)) {
+            return {
+              id: profiles[0]?.id,
+              username: profiles[0]?.username,
+              avatar: profiles[0]?.avatar
+            };
+          }
+          return {
+            id: profiles?.id,
+            username: profiles?.username,
+            avatar: profiles?.avatar
+          };
+        };
+        
+        const topicProfile = extractProfileData(topic?.profiles);
+        const firstPostProfile = extractProfileData(firstPost?.profiles);
         
         const formattedTopic = {
           ...topic,
           author: {
-            id: topic?.profiles?.[0]?.id || topic?.profiles?.id,
-            name: topic?.profiles?.[0]?.username || topic?.profiles?.username,
-            avatar: (topic?.profiles?.[0]?.avatar || topic?.profiles?.avatar) || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
+            id: topicProfile.id,
+            name: topicProfile.username,
+            avatar: topicProfile.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
           },
           excerpt: firstPost.content.substring(0, 150) + (firstPost.content.length > 150 ? '...' : '')
         };
@@ -131,34 +142,34 @@ const ForumTopic = () => {
           {
             id: firstPost.id,
             author: {
-              id: firstPost?.profiles?.[0]?.id || firstPost?.profiles?.id,
-              name: firstPost?.profiles?.[0]?.username || firstPost?.profiles?.username,
-              avatar: (firstPost?.profiles?.[0]?.avatar || firstPost?.profiles?.avatar) || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
-              role: (firstPost?.profiles?.[0]?.id || firstPost?.profiles?.id) === 
-                   (topic?.profiles?.[0]?.id || topic?.profiles?.id) ? 'Topic Starter' : undefined
+              id: firstPostProfile.id,
+              name: firstPostProfile.username,
+              avatar: firstPostProfile.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+              role: firstPostProfile.id === topicProfile.id ? 'Topic Starter' : undefined
             },
             content: firstPost.content,
             created_at: firstPost.created_at
           },
-          ...(replies || []).map(reply => ({
-            id: reply.id,
-            author: {
-              id: reply?.profiles?.[0]?.id || reply?.profiles?.id,
-              name: reply?.profiles?.[0]?.username || reply?.profiles?.username,
-              avatar: (reply?.profiles?.[0]?.avatar || reply?.profiles?.avatar) || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
-              role: (reply?.profiles?.[0]?.id || reply?.profiles?.id) === 
-                   (topic?.profiles?.[0]?.id || topic?.profiles?.id) ? 'Topic Starter' : undefined
-            },
-            content: reply.content,
-            created_at: reply.created_at
-          }))
+          ...(replies || []).map(reply => {
+            const replyProfile = extractProfileData(reply.profiles);
+            return {
+              id: reply.id,
+              author: {
+                id: replyProfile.id,
+                name: replyProfile.username,
+                avatar: replyProfile.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+                role: replyProfile.id === topicProfile.id ? 'Topic Starter' : undefined
+              },
+              content: reply.content,
+              created_at: reply.created_at
+            };
+          })
         ];
         
         setTopicData(formattedTopic);
         setPostsData(formattedPosts);
       } catch (error) {
         console.error('Error fetching topic data:', error);
-        // If real data fetch fails, fall back to mock data
         const topic = forumTopics.find(topic => topic.id === id);
         const posts = (topic && forumPosts[topic.id]) || [];
         
@@ -172,7 +183,6 @@ const ForumTopic = () => {
     fetchTopicData();
   }, [id]);
   
-  // Function to format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', { 
@@ -205,7 +215,6 @@ const ForumTopic = () => {
         throw new Error('User not found');
       }
       
-      // Insert the reply into the forum_posts table
       const { data: postData, error: postError } = await supabase
         .from('forum_posts')
         .insert({
@@ -218,7 +227,6 @@ const ForumTopic = () => {
       
       if (postError) throw postError;
       
-      // Update the reply count for the topic
       const { error: updateError } = await supabase
         .from('forum_topics')
         .update({ reply_count: (topicData?.reply_count || 0) + 1 })
@@ -229,14 +237,12 @@ const ForumTopic = () => {
       toast.success('Reply posted successfully!');
       setReplyContent('');
       
-      // Fetch user profile for the reply
       const { data: profileData } = await supabase
         .from('profiles')
         .select('avatar, username')
         .eq('id', user.id)
         .single();
       
-      // Add the new reply to the posts data for immediate UI update
       const newPost = {
         id: postData?.id,
         author: {
@@ -251,7 +257,6 @@ const ForumTopic = () => {
       
       setPostsData([...postsData, newPost]);
       
-      // Update topic data with new reply count
       setTopicData({
         ...topicData,
         reply_count: (topicData?.reply_count || 0) + 1
@@ -346,9 +351,7 @@ const ForumTopic = () => {
         
         <Separator className="my-6" />
         
-        {/* Original post and replies */}
         <div className="space-y-6 mb-8">
-          {/* Posts */}
           {postsData.map((post) => (
             <Card key={post.id}>
               <CardContent className="p-6">
@@ -399,7 +402,6 @@ const ForumTopic = () => {
           ))}
         </div>
         
-        {/* Reply form */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h3 className="text-lg font-bold mb-4">Post a Reply</h3>
           
