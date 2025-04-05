@@ -120,9 +120,9 @@ const ForumTopic = () => {
         const formattedTopic = {
           ...topic,
           author: {
-            id: topic.profiles?.id,
-            name: topic.profiles?.username,
-            avatar: topic.profiles?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
+            id: topic?.profiles?.[0]?.id || topic?.profiles?.id,
+            name: topic?.profiles?.[0]?.username || topic?.profiles?.username,
+            avatar: (topic?.profiles?.[0]?.avatar || topic?.profiles?.avatar) || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
           },
           excerpt: firstPost.content.substring(0, 150) + (firstPost.content.length > 150 ? '...' : '')
         };
@@ -131,10 +131,11 @@ const ForumTopic = () => {
           {
             id: firstPost.id,
             author: {
-              id: firstPost.profiles?.id,
-              name: firstPost.profiles?.username,
-              avatar: firstPost.profiles?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
-              role: firstPost.profiles?.id === topic.profiles?.id ? 'Topic Starter' : undefined
+              id: firstPost?.profiles?.[0]?.id || firstPost?.profiles?.id,
+              name: firstPost?.profiles?.[0]?.username || firstPost?.profiles?.username,
+              avatar: (firstPost?.profiles?.[0]?.avatar || firstPost?.profiles?.avatar) || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+              role: (firstPost?.profiles?.[0]?.id || firstPost?.profiles?.id) === 
+                   (topic?.profiles?.[0]?.id || topic?.profiles?.id) ? 'Topic Starter' : undefined
             },
             content: firstPost.content,
             created_at: firstPost.created_at
@@ -142,10 +143,11 @@ const ForumTopic = () => {
           ...(replies || []).map(reply => ({
             id: reply.id,
             author: {
-              id: reply.profiles?.id,
-              name: reply.profiles?.username,
-              avatar: reply.profiles?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
-              role: reply.profiles?.id === topic.profiles?.id ? 'Topic Starter' : undefined
+              id: reply?.profiles?.[0]?.id || reply?.profiles?.id,
+              name: reply?.profiles?.[0]?.username || reply?.profiles?.username,
+              avatar: (reply?.profiles?.[0]?.avatar || reply?.profiles?.avatar) || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+              role: (reply?.profiles?.[0]?.id || reply?.profiles?.id) === 
+                   (topic?.profiles?.[0]?.id || topic?.profiles?.id) ? 'Topic Starter' : undefined
             },
             content: reply.content,
             created_at: reply.created_at
@@ -219,7 +221,7 @@ const ForumTopic = () => {
       // Update the reply count for the topic
       const { error: updateError } = await supabase
         .from('forum_topics')
-        .update({ reply_count: (topicData.reply_count || 0) + 1 })
+        .update({ reply_count: (topicData?.reply_count || 0) + 1 })
         .eq('id', id);
       
       if (updateError) throw updateError;
