@@ -9,9 +9,52 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+// Add type declarations for model-viewer element
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'model-viewer': React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement> & {
+          src?: string;
+          alt?: string;
+          ar?: boolean;
+          'ar-modes'?: string;
+          'camera-controls'?: boolean;
+          'auto-rotate'?: boolean;
+          'shadow-intensity'?: string;
+          'environment-image'?: string;
+          exposure?: string;
+          poster?: string;
+          'ar-placement'?: string;
+          'ar-scale'?: string;
+          'interaction-prompt'?: string;
+          'touch-action'?: string;
+          style?: React.CSSProperties;
+        },
+        HTMLElement
+      >;
+    }
+  }
+
+  interface Window {
+    ModelViewerElement?: {
+      canActivateAR?: boolean;
+    };
+  }
+}
+
+// Define a custom interface for the model-viewer element
+interface HTMLModelViewerElement extends HTMLElement {
+  autoRotate: boolean;
+  scale: string;
+  resetTurntableRotation: () => void;
+  cameraOrbit: string;
+  dispatchEvent: (event: CustomEvent) => boolean;
+}
+
 const ARWebXR = () => {
   const navigate = useNavigate();
-  const modelViewerRef = useRef<HTMLElement | null>(null);
+  const modelViewerRef = useRef<HTMLModelViewerElement | null>(null);
   const [autoRotate, setAutoRotate] = useState(true);
   const [arSupported, setArSupported] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

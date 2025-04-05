@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Box, Package, Info, ExternalLink, Cube } from 'lucide-react';
+import { Box, Package, Info, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,7 +22,6 @@ interface ARModelSelectorProps {
   onModelChange: (model: ARModel) => void;
 }
 
-// Updated model options with verified working Sketchfab models
 export const MODEL_OPTIONS: ARModel[] = [
   { 
     id: '1', 
@@ -146,7 +145,7 @@ const ARModelSelector = ({ models, selectedModel, onModelChange }: ARModelSelect
             asChild
           >
             <Link to="/ar-webxr">
-              <Cube className="h-3 w-3 mr-1" />
+              <Box className="h-3 w-3 mr-1" />
               Try WebXR Experience
             </Link>
           </Button>
