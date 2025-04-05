@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Box, Package, Info, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 
 export interface ARModel {
