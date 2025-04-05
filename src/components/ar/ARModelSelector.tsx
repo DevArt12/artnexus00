@@ -77,6 +77,34 @@ export const MODEL_OPTIONS: ARModel[] = [
     description: 'Interactive art installation with colorful elements',
     creator: 'Installation Workshop',
     sketchfabId: 'c50f7f0b4c9e42739e014e1ff8010f74'
+  },
+  // New models added
+  {
+    id: '7',
+    name: 'Madonna Sculpture',
+    src: 'https://sketchfab.com/models/5e16f3cd478e4c8cb32dede7446a83fb/embed?autostart=1&ui_hint=0&transparent=1',
+    thumbnail: 'https://images.unsplash.com/photo-1597945969067-f476372a15b4?auto=format&fit=crop&w=150&q=80',
+    description: 'Classical sculpture of Madonna, finely detailed with traditional artistic elements',
+    creator: 'jan.zachar',
+    sketchfabId: '5e16f3cd478e4c8cb32dede7446a83fb'
+  },
+  {
+    id: '8',
+    name: 'Vase Grec Antique',
+    src: 'https://sketchfab.com/models/94d1b11f5397484990f8a56e4df191b9/embed?autostart=1&ui_hint=0&transparent=1',
+    thumbnail: 'https://images.unsplash.com/photo-1608279314122-34812ba6129f?auto=format&fit=crop&w=150&q=80',
+    description: 'Ancient Greek vase with traditional decorative patterns and historical significance',
+    creator: 'Tavernier Amaury',
+    sketchfabId: '94d1b11f5397484990f8a56e4df191b9'
+  },
+  {
+    id: '9',
+    name: 'Victorian Framed Painting',
+    src: 'https://sketchfab.com/models/b2895c1c3b42401a949deac049e0051d/embed?autostart=1&ui_hint=0&transparent=1',
+    thumbnail: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=150&q=80',
+    description: 'PBR Game Ready Victorian style framed painting with ornate golden frame',
+    creator: 'Matthew Collings',
+    sketchfabId: 'b2895c1c3b42401a949deac049e0051d'
   }
 ];
 

@@ -3,24 +3,29 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SketchfabEmbed from '@/components/ar/SketchfabEmbed';
 import { MODEL_OPTIONS, ARModel } from '@/components/ar/ARModelSelector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { Box, Search, ExternalLink, Filter } from 'lucide-react';
+import { Box, Search, ExternalLink, Filter, Star } from 'lucide-react';
 
 const ARModels = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedModel, setSelectedModel] = useState<ARModel | null>(null);
+  const [isModelLoading, setIsModelLoading] = useState(false);
   
   // Categories
   const categories = [
     { id: 'all', name: 'All Models' },
     { id: 'abstract', name: 'Abstract' },
     { id: 'sculpture', name: 'Sculpture' },
+    { id: 'classical', name: 'Classical' },
+    { id: 'painting', name: 'Painting' },
     { id: 'architecture', name: 'Architecture' },
     { id: 'furniture', name: 'Furniture' }
   ];
@@ -40,10 +45,21 @@ const ARModels = () => {
     return matchesSearch && matchesCategory;
   });
   
+  // Featured new models
+  const newModels = MODEL_OPTIONS.slice(6, 9);
+  
   const viewInAR = () => {
     if (selectedModel) {
       navigate(`/ar-view/1`, { state: { selectedModel } });
     }
+  };
+
+  const handleModelLoad = () => {
+    setIsModelLoading(false);
+  };
+  
+  const handleModelError = () => {
+    setIsModelLoading(false);
   };
   
   return (
@@ -61,6 +77,50 @@ const ARModels = () => {
               Explore our collection of 3D models that you can view in augmented reality.
               Place these virtual sculptures in your space and experience art in a new dimension.
             </p>
+          </div>
+        </div>
+        
+        {/* New Models Showcase */}
+        <div className="mb-12">
+          <div className="flex items-center mb-4">
+            <Star className="mr-2 h-5 w-5 text-yellow-500" />
+            <h2 className="text-2xl font-semibold">New Additions</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {newModels.map(model => (
+              <motion.div
+                key={model.id}
+                className="border rounded-lg overflow-hidden shadow-md bg-white dark:bg-gray-800"
+                whileHover={{ y: -5 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="aspect-video relative">
+                  <SketchfabEmbed 
+                    src={model.src} 
+                    title={model.name} 
+                    onLoad={handleModelLoad} 
+                    onError={handleModelError}
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="text-lg font-medium mb-1">{model.name}</h3>
+                  <p className="text-sm text-muted-foreground mb-3">{model.description}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">By {model.creator}</span>
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      className="text-xs"
+                      onClick={() => setSelectedModel(model)}
+                    >
+                      Select Model
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
         
@@ -141,13 +201,12 @@ const ARModels = () => {
             {selectedModel ? (
               <div className="sticky top-4 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
                 <div className="aspect-video w-full">
-                  <iframe 
+                  <SketchfabEmbed 
+                    src={selectedModel.src} 
                     title={selectedModel.name}
-                    src={selectedModel.src}
-                    className="w-full h-full border-0"
-                    allow="autoplay; fullscreen; xr-spatial-tracking"
-                    allowFullScreen
-                  ></iframe>
+                    onLoad={handleModelLoad}
+                    onError={handleModelError}
+                  />
                 </div>
                 <div className="p-4">
                   <h2 className="text-xl font-bold mb-2">{selectedModel.name}</h2>
