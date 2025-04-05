@@ -221,78 +221,140 @@ const ARWebXR = () => {
         </div>
       </model-viewer>
 
-      {/* Controls overlay */}
-      <div className={`absolute ${isMobile ? 'bottom-4 left-0 right-0 px-4' : 'bottom-8 right-8'} z-10`}>
-        <div className="bg-black/30 backdrop-blur-sm rounded-xl p-3 flex flex-wrap gap-2 justify-center">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="text-white hover:bg-white/20"
-            onClick={toggleAutoRotate}
-          >
-            {autoRotate ? <Pause className="h-4 w-4 mr-1" /> : <Play className="h-4 w-4 mr-1" />}
-            {!isMobile && (autoRotate ? "Pause" : "Auto-rotate")}
-          </Button>
-          
-          <Separator orientation="vertical" className="h-8 bg-white/20" />
-          
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="text-white hover:bg-white/20"
-            onClick={handleRotateLeft}
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
-          
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="text-white hover:bg-white/20" 
-            onClick={handleRotateRight}
-          >
-            <RotateCw className="h-4 w-4" />
-          </Button>
-          
-          <Separator orientation="vertical" className="h-8 bg-white/20" />
-          
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="text-white hover:bg-white/20" 
-            onClick={handleZoomIn}
-          >
-            <ZoomIn className="h-4 w-4" />
-          </Button>
-          
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="text-white hover:bg-white/20" 
-            onClick={handleZoomOut}
-          >
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          
-          <Separator orientation="vertical" className="h-8 bg-white/20" />
-          
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="text-white hover:bg-white/20" 
-            onClick={resetModel}
-          >
-            <RefreshCw className="h-4 w-4" />
-            {!isMobile && "Reset"}
-          </Button>
-        </div>
-
-        {!arSupported && (
-          <div className="mt-2 text-center text-sm text-white/70 bg-black/30 backdrop-blur-sm rounded-lg p-2">
-            AR features may not be supported on this device or browser
+      {/* Mobile-optimized Controls */}
+      {isMobile ? (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-10 flex flex-wrap gap-2 justify-center">
+          <div className="bg-black/50 backdrop-blur-sm rounded-full p-2 flex gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="w-10 h-10 rounded-full text-white hover:bg-white/20"
+              onClick={toggleAutoRotate}
+            >
+              {autoRotate ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="w-10 h-10 rounded-full text-white hover:bg-white/20"
+              onClick={handleZoomIn}
+            >
+              <ZoomIn className="h-5 w-5" />
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="w-10 h-10 rounded-full text-white hover:bg-white/20" 
+              onClick={handleZoomOut}
+            >
+              <ZoomOut className="h-5 w-5" />
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="w-10 h-10 rounded-full text-white hover:bg-white/20" 
+              onClick={resetModel}
+            >
+              <RefreshCw className="h-5 w-5" />
+            </Button>
           </div>
-        )}
-      </div>
+          
+          <div className="bg-black/50 backdrop-blur-sm rounded-full p-2 flex gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="w-10 h-10 rounded-full text-white hover:bg-white/20"
+              onClick={handleRotateLeft}
+            >
+              <RotateCcw className="h-5 w-5" />
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="w-10 h-10 rounded-full text-white hover:bg-white/20" 
+              onClick={handleRotateRight}
+            >
+              <RotateCw className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="absolute bottom-8 right-8 z-10">
+          <div className="bg-black/30 backdrop-blur-sm rounded-xl p-3 flex flex-wrap gap-2 justify-center">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-white hover:bg-white/20"
+              onClick={toggleAutoRotate}
+            >
+              {autoRotate ? <Pause className="h-4 w-4 mr-1" /> : <Play className="h-4 w-4 mr-1" />}
+              {autoRotate ? "Pause" : "Auto-rotate"}
+            </Button>
+            
+            <Separator orientation="vertical" className="h-8 bg-white/20" />
+            
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-white hover:bg-white/20"
+              onClick={handleRotateLeft}
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-white hover:bg-white/20" 
+              onClick={handleRotateRight}
+            >
+              <RotateCw className="h-4 w-4" />
+            </Button>
+            
+            <Separator orientation="vertical" className="h-8 bg-white/20" />
+            
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-white hover:bg-white/20" 
+              onClick={handleZoomIn}
+            >
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-white hover:bg-white/20" 
+              onClick={handleZoomOut}
+            >
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            
+            <Separator orientation="vertical" className="h-8 bg-white/20" />
+            
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-white hover:bg-white/20" 
+              onClick={resetModel}
+            >
+              <RefreshCw className="h-4 w-4 mr-1" />
+              Reset
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {!arSupported && (
+        <div className="mt-2 text-center text-sm text-white/70 bg-black/30 backdrop-blur-sm rounded-lg p-2 absolute bottom-4 left-1/2 transform -translate-x-1/2">
+          AR features may not be supported on this device or browser
+        </div>
+      )}
     </div>
   );
 };

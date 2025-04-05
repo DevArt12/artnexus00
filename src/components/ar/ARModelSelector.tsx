@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Box, Package, Info, ExternalLink } from 'lucide-react';
@@ -16,21 +15,15 @@ export interface ARModel {
   sketchfabId?: string;
 }
 
-interface ARModelSelectorProps {
-  models: ARModel[];
-  selectedModel: ARModel;
-  onModelChange: (model: ARModel) => void;
-}
-
 export const MODEL_OPTIONS: ARModel[] = [
   { 
     id: '1', 
-    name: 'Modern Sculpture', 
-    src: 'https://sketchfab.com/models/6cd59c0d23874342b5073b35e85ab992/embed?autostart=1&ui_hint=0',
-    thumbnail: 'https://images.unsplash.com/photo-1591123720164-de1348028a82?auto=format&fit=crop&w=150&q=80',
-    description: 'Contemporary abstract sculpture with flowing forms',
-    creator: 'ArtNexus Gallery',
-    sketchfabId: '6cd59c0d23874342b5073b35e85ab992'
+    name: 'Digital Dreamscape', 
+    src: 'https://sketchfab.com/models/ec60c1f3a5b64e19aa877c54da6057e2/embed?autostart=1&ui_hint=0',
+    thumbnail: 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?auto=format&fit=crop&w=150&q=80',
+    description: 'An immersive digital landscape exploring the boundaries between reality and imagination',
+    creator: 'Digital Arts Collective',
+    sketchfabId: 'ec60c1f3a5b64e19aa877c54da6057e2'
   },
   { 
     id: '2', 
