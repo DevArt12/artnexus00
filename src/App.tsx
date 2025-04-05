@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from "@/components/theme-provider"
@@ -10,6 +11,7 @@ import Marketplace from '@/pages/Marketplace';
 import Collections from '@/pages/Collections';
 import ARView from '@/pages/ARView';
 import ARModels from '@/pages/ARModels';
+import ARWebXR from '@/pages/ARWebXR'; // Add the new ARWebXR component
 import ArtworkDetail from '@/pages/ArtworkDetail';
 import ArtistProfile from '@/pages/ArtistProfile';
 import Auth from '@/pages/Auth';
@@ -37,6 +39,7 @@ function App() {
             <Route path="/collections" element={<Collections />} />
             <Route path="/ar-view/:id" element={<ARView />} />
             <Route path="/ar-models" element={<ARModels />} />
+            <Route path="/ar-webxr" element={<ARWebXR />} /> {/* Add the new route */}
             <Route path="/artwork/:id" element={<ArtworkDetail />} />
             <Route path="/artist/:id" element={<ArtistProfile />} />
             <Route path="/auth" element={<Auth />} />

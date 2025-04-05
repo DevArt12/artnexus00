@@ -1,10 +1,10 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Box, Package, Info, ExternalLink } from 'lucide-react';
+import { Box, Package, Info, ExternalLink, Cube } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Link } from 'react-router-dom';
 
 export interface ARModel {
   id: string;
@@ -78,7 +78,6 @@ export const MODEL_OPTIONS: ARModel[] = [
     creator: 'Installation Workshop',
     sketchfabId: 'c50f7f0b4c9e42739e014e1ff8010f74'
   },
-  // New models added
   {
     id: '7',
     name: 'Madonna Sculpture',
@@ -138,6 +137,18 @@ const ARModelSelector = ({ models, selectedModel, onModelChange }: ARModelSelect
           >
             <Info className="h-3 w-3 mr-1" />
             {showDetails ? 'Hide details' : 'Show details'}
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs flex items-center border-dashed"
+            asChild
+          >
+            <Link to="/ar-webxr">
+              <Cube className="h-3 w-3 mr-1" />
+              Try WebXR Experience
+            </Link>
           </Button>
         </div>
       </div>
