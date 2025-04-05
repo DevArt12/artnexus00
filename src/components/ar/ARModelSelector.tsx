@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Box, Package, Info, ExternalLink } from 'lucide-react';
@@ -42,26 +41,8 @@ export const MODEL_OPTIONS: ARModel[] = [
     sketchfabId: '88dbe9e9216145a3b9f315c2f3ea4743'
   },
   { 
-    id: '3', 
-    name: 'Art Gallery', 
-    src: 'https://sketchfab.com/models/5097cf02694e42b0930ad2d7cfdc3c07/embed?autostart=1&ui_hint=0',
-    thumbnail: 'https://images.unsplash.com/photo-1578749471545-8c1116b13793?auto=format&fit=crop&w=150&q=80',
-    description: 'Virtual art gallery with paintings',
-    creator: 'Design Collective',
-    sketchfabId: '5097cf02694e42b0930ad2d7cfdc3c07'
-  },
-  {
-    id: '4',
-    name: 'Digital Sculpture',
-    src: 'https://sketchfab.com/models/473daec13ce64d5da93e7349751486c8/embed?autostart=1&ui_hint=0',
-    thumbnail: 'https://images.unsplash.com/photo-1559036540-c1b1e07244b4?auto=format&fit=crop&w=150&q=80',
-    description: 'Digitally created sculpture exploring geometric forms',
-    creator: 'Digital Arts Lab',
-    sketchfabId: '473daec13ce64d5da93e7349751486c8'
-  },
-  {
-    id: '5',
-    name: 'Abstract Art',
+    id: '5', 
+    name: 'Abstract Art', 
     src: 'https://sketchfab.com/models/957d311ed5944a15b21e98b3b933926a/embed?autostart=1&ui_hint=0', 
     thumbnail: 'https://images.unsplash.com/photo-1605991644230-eff97837d12f?auto=format&fit=crop&w=150&q=80',
     description: 'Colorful abstract artwork with vibrant forms',
