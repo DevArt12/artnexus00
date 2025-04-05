@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Box, Package, Info, ExternalLink } from 'lucide-react';
@@ -13,6 +14,12 @@ export interface ARModel {
   description: string;
   creator: string;
   sketchfabId?: string;
+}
+
+export interface ARModelSelectorProps {
+  models: ARModel[];
+  selectedModel: ARModel;
+  onModelChange: (model: ARModel) => void;
 }
 
 export const MODEL_OPTIONS: ARModel[] = [
