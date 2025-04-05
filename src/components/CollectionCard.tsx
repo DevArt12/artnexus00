@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -14,7 +13,7 @@ import {
 import { X, Edit2, MoreHorizontal } from 'lucide-react';
 import { artworks } from '@/data/mockData';
 import { toast } from 'sonner';
-import { collectionsService } from '@/integrations/supabase/client';
+import { collectionsService, supabase } from '@/integrations/supabase/client';
 
 interface CollectionCardProps {
   collection: {
@@ -53,7 +52,15 @@ const CollectionCard = ({ collection, onEdit, onDelete, onUpdate }: CollectionCa
   
   const addArtworkToCollection = async (artworkId: string) => {
     try {
-      await collectionsService.addArtworkToCollection(collection.id, artworkId);
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) {
+        toast.error("You must be logged in to add artwork to collections");
+        return;
+      }
+      
+      const { error } = await collectionsService.addToCollection(data.user.id, collection.id, artworkId);
+      if (error) throw error;
+      
       toast.success("Artwork added to collection");
       onUpdate();
     } catch (error) {
@@ -64,7 +71,9 @@ const CollectionCard = ({ collection, onEdit, onDelete, onUpdate }: CollectionCa
   
   const removeArtworkFromCollection = async (artworkId: string) => {
     try {
-      await collectionsService.removeArtworkFromCollection(collection.id, artworkId);
+      const { error } = await collectionsService.removeFromCollection(collection.id, artworkId);
+      if (error) throw error;
+      
       toast.success("Artwork removed from collection");
       onUpdate();
     } catch (error) {

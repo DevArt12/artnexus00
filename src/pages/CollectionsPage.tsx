@@ -9,9 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Folder, Plus, Search, Loader2 } from 'lucide-react';
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { collectionsService } from '@/integrations/supabase/client';
+import { collectionsService, supabase } from '@/integrations/supabase/client';
 import CollectionCard from '@/components/CollectionCard';
-import { supabase } from '@/integrations/supabase/client';
 
 const CollectionsPage = () => {
   const navigate = useNavigate();

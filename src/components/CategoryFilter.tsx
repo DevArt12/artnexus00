@@ -17,7 +17,8 @@ interface CategoryFilterProps {
 const fetchCategories = async () => {
   try {
     // Try to get distinct categories from the database
-    const { data, error } = await supabase
+    // Using 'any' type to bypass the TypeScript type issue temporarily
+    const { data, error }: { data: any[], error: any } = await supabase
       .from('artworks')
       .select('category')
       .not('category', 'is', null)
@@ -27,8 +28,8 @@ const fetchCategories = async () => {
       throw error;
     }
     
-    // Extract unique categories
-    const uniqueCategories = [...new Set(data.map(item => item.category))];
+    // Extract unique categories, handle data as any to bypass type constraints
+    const uniqueCategories = [...new Set(data.map(item => item.category as string))];
     return uniqueCategories.length > 0 ? uniqueCategories : mockCategories;
   } catch (error) {
     console.error('Error fetching categories:', error);
