@@ -120,9 +120,9 @@ const ForumTopic = () => {
         const formattedTopic = {
           ...topic,
           author: {
-            id: topic.profiles.id,
-            name: topic.profiles.username,
-            avatar: topic.profiles.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
+            id: topic.profiles?.id,
+            name: topic.profiles?.username,
+            avatar: topic.profiles?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80'
           },
           excerpt: firstPost.content.substring(0, 150) + (firstPost.content.length > 150 ? '...' : '')
         };
@@ -131,10 +131,10 @@ const ForumTopic = () => {
           {
             id: firstPost.id,
             author: {
-              id: firstPost.profiles.id,
-              name: firstPost.profiles.username,
-              avatar: firstPost.profiles.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
-              role: firstPost.profiles.id === topic.profiles.id ? 'Topic Starter' : undefined
+              id: firstPost.profiles?.id,
+              name: firstPost.profiles?.username,
+              avatar: firstPost.profiles?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+              role: firstPost.profiles?.id === topic.profiles?.id ? 'Topic Starter' : undefined
             },
             content: firstPost.content,
             created_at: firstPost.created_at
@@ -142,10 +142,10 @@ const ForumTopic = () => {
           ...(replies || []).map(reply => ({
             id: reply.id,
             author: {
-              id: reply.profiles.id,
-              name: reply.profiles.username,
-              avatar: reply.profiles.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
-              role: reply.profiles.id === topic.profiles.id ? 'Topic Starter' : undefined
+              id: reply.profiles?.id,
+              name: reply.profiles?.username,
+              avatar: reply.profiles?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+              role: reply.profiles?.id === topic.profiles?.id ? 'Topic Starter' : undefined
             },
             content: reply.content,
             created_at: reply.created_at
@@ -236,12 +236,12 @@ const ForumTopic = () => {
       
       // Add the new reply to the posts data for immediate UI update
       const newPost = {
-        id: postData.id,
+        id: postData?.id,
         author: {
           id: user.id,
           name: profileData?.username || user.email?.split('@')[0] || 'User',
           avatar: profileData?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
-          role: user.id === topicData.author.id ? 'Topic Starter' : undefined
+          role: user.id === topicData?.author?.id ? 'Topic Starter' : undefined
         },
         content: replyContent,
         created_at: new Date().toISOString()
@@ -252,7 +252,7 @@ const ForumTopic = () => {
       // Update topic data with new reply count
       setTopicData({
         ...topicData,
-        reply_count: (topicData.reply_count || 0) + 1
+        reply_count: (topicData?.reply_count || 0) + 1
       });
     } catch (error: any) {
       console.error('Error posting reply:', error);
