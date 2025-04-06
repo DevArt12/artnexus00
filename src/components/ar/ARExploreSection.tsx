@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -8,18 +7,32 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Box, ArrowRight, Image, ScanLine } from 'lucide-react';
 import { ARModel, MODEL_OPTIONS } from './ARModelSelector';
 import { Artwork, artworks, getArtistById } from '@/data/mockData';
+import { marketplaceItems } from '@/data/marketplaceData';
 
 const ARExploreSection = () => {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState<'paintings' | 'sculptures'>('paintings');
   
-  // Filter artworks by category
-  const paintings = artworks.filter(artwork => 
-    artwork.categories.some(cat => 
-      ['painting', 'abstract', 'contemporary', 'figurative'].includes(cat.toLowerCase())
-    )
-  ).slice(0, 4);
+  // Replace paintings with one item from marketplace data
+  const paintings = [
+    {
+      id: marketplaceItems[0].id,
+      title: marketplaceItems[0].title,
+      description: marketplaceItems[0].description,
+      image: marketplaceItems[0].image,
+      artistId: marketplaceItems[0].artist.id,
+      medium: marketplaceItems[0].medium,
+      createdAt: new Date().toISOString(),
+      likes: 0,
+      comments: 0,
+      categories: [marketplaceItems[0].category],
+      dimensions: marketplaceItems[0].dimensions || "24 x 36 inches",
+      price: marketplaceItems[0].price,
+      onSale: marketplaceItems[0].status === "available"
+    }
+  ];
   
+  // Filter sculptures from artworks
   const sculptures = artworks.filter(artwork => 
     artwork.categories.some(cat => 
       ['sculpture', '3d', 'installation', 'ceramic'].includes(cat.toLowerCase())
@@ -160,7 +173,6 @@ const ARExploreSection = () => {
   );
 };
 
-// Component for displaying 2D artwork AR option
 const ArtworkARCard = ({ artwork, onClick }: { artwork: Artwork, onClick: () => void }) => {
   // Get the artist information
   const artist = getArtistById(artwork.artistId);
@@ -192,7 +204,6 @@ const ArtworkARCard = ({ artwork, onClick }: { artwork: Artwork, onClick: () => 
   );
 };
 
-// Component for displaying 3D model AR option
 const ModelARCard = ({ model, onClick }: { model: ARModel, onClick: () => void }) => {
   return (
     <motion.div 
