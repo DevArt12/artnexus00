@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Box, Package, Info, ExternalLink } from 'lucide-react';
@@ -25,30 +24,30 @@ export interface ARModelSelectorProps {
 export const MODEL_OPTIONS: ARModel[] = [
   { 
     id: '1', 
-    name: 'Basic Cube', 
-    src: 'https://sketchfab.com/models/86f709db2a2f4289a9c16949f8aae2d8/embed?autostart=1&ui_hint=0',
-    thumbnail: 'https://images.unsplash.com/photo-1557827983-012eb6ea8dc5?auto=format&fit=crop&w=150&q=80',
-    description: 'A simple 3D cube that loads quickly',
-    creator: 'Sketchfab',
-    sketchfabId: '86f709db2a2f4289a9c16949f8aae2d8'
+    name: 'Madonna Sculpture', 
+    src: 'https://sketchfab.com/models/5e16f3cd478e4c8cb32dede7446a83fb/embed?autostart=1&ui_hint=0&autospin=1&preload=1&transparent=1',
+    thumbnail: 'https://images.unsplash.com/photo-1569292560006-92ee85635959?auto=format&fit=crop&w=150&q=80',
+    description: 'A detailed Madonna sculpture with intricate details',
+    creator: 'jan.zachar',
+    sketchfabId: '5e16f3cd478e4c8cb32dede7446a83fb'
   },
   { 
     id: '2', 
-    name: 'Simple Sphere', 
-    src: 'https://sketchfab.com/models/e1b8971951d74513b3387eedf9c5b6a4/embed?autostart=1&ui_hint=0',
-    thumbnail: 'https://images.unsplash.com/photo-1594030433805-5363e5923817?auto=format&fit=crop&w=150&q=80',
-    description: 'A basic sphere with minimal textures',
-    creator: 'Poly by Google',
-    sketchfabId: 'e1b8971951d74513b3387eedf9c5b6a4'
+    name: 'Greek Antique Vase', 
+    src: 'https://sketchfab.com/models/94d1b11f5397484990f8a56e4df191b9/embed?autostart=1&ui_hint=0&autospin=1&preload=1&transparent=1',
+    thumbnail: 'https://images.unsplash.com/photo-1580974852861-c381510bc98a?auto=format&fit=crop&w=150&q=80',
+    description: 'Ancient Greek pottery vase with traditional patterns',
+    creator: 'Tavernier Amaury',
+    sketchfabId: '94d1b11f5397484990f8a56e4df191b9'
   },
   { 
     id: '3', 
-    name: 'Low Poly Tree', 
-    src: 'https://sketchfab.com/models/2cff6409c8a94a7d8d7d96a4d625aee3/embed?autostart=1&ui_hint=0', 
-    thumbnail: 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=150&q=80',
-    description: 'Simple low-polygon tree model',
-    creator: 'Poly',
-    sketchfabId: '2cff6409c8a94a7d8d7d96a4d625aee3'
+    name: 'Victorian Framed Painting', 
+    src: 'https://sketchfab.com/models/b2895c1c3b42401a949deac049e0051d/embed?autostart=1&ui_hint=0&autospin=1&preload=1&transparent=1', 
+    thumbnail: 'https://images.unsplash.com/photo-1579783901586-d88db74b4fe4?auto=format&fit=crop&w=150&q=80',
+    description: 'PBR Game Ready Victorian era framed painting with ornate gold frame',
+    creator: 'Matthew Collings',
+    sketchfabId: 'b2895c1c3b42401a949deac049e0051d'
   }
 ];
 
