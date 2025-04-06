@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Box, Package, Info, ExternalLink } from 'lucide-react';
@@ -24,66 +25,30 @@ export interface ARModelSelectorProps {
 export const MODEL_OPTIONS: ARModel[] = [
   { 
     id: '1', 
-    name: 'Digital Dreamscape', 
-    src: 'https://sketchfab.com/models/ec60c1f3a5b64e19aa877c54da6057e2/embed?autostart=1&ui_hint=0',
-    thumbnail: 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?auto=format&fit=crop&w=150&q=80',
-    description: 'An immersive digital landscape exploring the boundaries between reality and imagination',
-    creator: 'Digital Arts Collective',
-    sketchfabId: 'ec60c1f3a5b64e19aa877c54da6057e2'
+    name: 'Basic Cube', 
+    src: 'https://sketchfab.com/models/86f709db2a2f4289a9c16949f8aae2d8/embed?autostart=1&ui_hint=0',
+    thumbnail: 'https://images.unsplash.com/photo-1557827983-012eb6ea8dc5?auto=format&fit=crop&w=150&q=80',
+    description: 'A simple 3D cube that loads quickly',
+    creator: 'Sketchfab',
+    sketchfabId: '86f709db2a2f4289a9c16949f8aae2d8'
   },
   { 
     id: '2', 
-    name: 'Abstract Waves', 
-    src: 'https://sketchfab.com/models/88dbe9e9216145a3b9f315c2f3ea4743/embed?autostart=1&ui_hint=0',
-    thumbnail: 'https://images.unsplash.com/photo-1547333590-47fae5f58d21?auto=format&fit=crop&w=150&q=80',
-    description: 'Fluid abstract art piece with dynamic movement',
-    creator: 'Modern Art Studio',
-    sketchfabId: '88dbe9e9216145a3b9f315c2f3ea4743'
+    name: 'Simple Sphere', 
+    src: 'https://sketchfab.com/models/e1b8971951d74513b3387eedf9c5b6a4/embed?autostart=1&ui_hint=0',
+    thumbnail: 'https://images.unsplash.com/photo-1594030433805-5363e5923817?auto=format&fit=crop&w=150&q=80',
+    description: 'A basic sphere with minimal textures',
+    creator: 'Poly by Google',
+    sketchfabId: 'e1b8971951d74513b3387eedf9c5b6a4'
   },
   { 
-    id: '5', 
-    name: 'Abstract Art', 
-    src: 'https://sketchfab.com/models/957d311ed5944a15b21e98b3b933926a/embed?autostart=1&ui_hint=0', 
-    thumbnail: 'https://images.unsplash.com/photo-1605991644230-eff97837d12f?auto=format&fit=crop&w=150&q=80',
-    description: 'Colorful abstract artwork with vibrant forms',
-    creator: 'Contemporary Studio',
-    sketchfabId: '957d311ed5944a15b21e98b3b933926a'
-  },
-  {
-    id: '6',
-    name: 'Art Installation',
-    src: 'https://sketchfab.com/models/c50f7f0b4c9e42739e014e1ff8010f74/embed?autostart=1&ui_hint=0',
-    thumbnail: 'https://images.unsplash.com/photo-1555850224-f6a0e863f5c2?auto=format&fit=crop&w=150&q=80',
-    description: 'Interactive art installation with colorful elements',
-    creator: 'Installation Workshop',
-    sketchfabId: 'c50f7f0b4c9e42739e014e1ff8010f74'
-  },
-  {
-    id: '7',
-    name: 'Madonna Sculpture',
-    src: 'https://sketchfab.com/models/5e16f3cd478e4c8cb32dede7446a83fb/embed?autostart=1&ui_hint=0&transparent=1',
-    thumbnail: 'https://images.unsplash.com/photo-1597945969067-f476372a15b4?auto=format&fit=crop&w=150&q=80',
-    description: 'Classical sculpture of Madonna, finely detailed with traditional artistic elements',
-    creator: 'jan.zachar',
-    sketchfabId: '5e16f3cd478e4c8cb32dede7446a83fb'
-  },
-  {
-    id: '8',
-    name: 'Vase Grec Antique',
-    src: 'https://sketchfab.com/models/94d1b11f5397484990f8a56e4df191b9/embed?autostart=1&ui_hint=0&transparent=1',
-    thumbnail: 'https://images.unsplash.com/photo-1608279314122-34812ba6129f?auto=format&fit=crop&w=150&q=80',
-    description: 'Ancient Greek vase with traditional decorative patterns and historical significance',
-    creator: 'Tavernier Amaury',
-    sketchfabId: '94d1b11f5397484990f8a56e4df191b9'
-  },
-  {
-    id: '9',
-    name: 'Victorian Framed Painting',
-    src: 'https://sketchfab.com/models/b2895c1c3b42401a949deac049e0051d/embed?autostart=1&ui_hint=0&transparent=1',
-    thumbnail: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=150&q=80',
-    description: 'PBR Game Ready Victorian style framed painting with ornate golden frame',
-    creator: 'Matthew Collings',
-    sketchfabId: 'b2895c1c3b42401a949deac049e0051d'
+    id: '3', 
+    name: 'Low Poly Tree', 
+    src: 'https://sketchfab.com/models/2cff6409c8a94a7d8d7d96a4d625aee3/embed?autostart=1&ui_hint=0', 
+    thumbnail: 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=150&q=80',
+    description: 'Simple low-polygon tree model',
+    creator: 'Poly',
+    sketchfabId: '2cff6409c8a94a7d8d7d96a4d625aee3'
   }
 ];
 
