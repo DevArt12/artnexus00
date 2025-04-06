@@ -60,6 +60,14 @@ const SketchfabEmbed = ({ src, title, className, onLoad, onError }: SketchfabEmb
     }
   }, [isVisible, isLoading]);
 
+  // Reset loading state when src changes
+  useEffect(() => {
+    if (src) {
+      setIsLoading(true);
+      setLoadProgress(0);
+    }
+  }, [src]);
+
   const handleLoad = () => {
     setIsLoading(false);
     setLoadProgress(100);
@@ -86,6 +94,8 @@ const SketchfabEmbed = ({ src, title, className, onLoad, onError }: SketchfabEmb
         // Handle Sketchfab API events
         if (data.type === 'LOADED' || data.type === 'MODEL_LOADED') {
           handleLoad();
+        } else if (data.type === 'ERROR') {
+          handleError();
         }
       } catch (e) {
         // Not a JSON message or not from Sketchfab
@@ -119,6 +129,7 @@ const SketchfabEmbed = ({ src, title, className, onLoad, onError }: SketchfabEmb
           title={title}
           className={`w-full h-full ${isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-500'}`}
           src={src}
+          frameBorder="0"
           allow="autoplay; fullscreen; xr-spatial-tracking"
           allowFullScreen
           onLoad={handleLoad}

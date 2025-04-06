@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -22,8 +21,7 @@ import ARModelSelector, { MODEL_OPTIONS } from '@/components/ar/ARModelSelector'
 import EnvironmentSettings from '@/components/ar/EnvironmentSettings';
 import { useIsMobile } from '@/hooks/use-mobile';
 import SketchfabEmbed from '@/components/ar/SketchfabEmbed';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useSketchfabModels } from '@/hooks/use-sketchfab-models';
+import { useSketchfabModel } from '@/hooks/use-sketchfab-model';
 
 interface Collection {
   id: string;
@@ -68,7 +66,14 @@ const ARView = () => {
 
   const isMobile = useIsMobile();
   
-  const { isLoading: modelIsLoading, currentModel, changeModel, handleModelLoaded, handleModelError } = useSketchfabModels({
+  const { 
+    currentModel, 
+    isLoading: modelIsLoading, 
+    error: modelError, 
+    changeModel,
+    handleModelLoaded,
+    handleModelError
+  } = useSketchfabModel(selectedModel, {
     onModelLoadStart: () => {
       toast.info(`Loading ${selectedModel.name}...`);
     },
@@ -78,90 +83,6 @@ const ARView = () => {
     onModelLoadError: (error) => {
       toast.error(`Failed to load model: ${error.message}`);
     }
-  });
-
-  const { isLoading, error } = useQuery({
-    queryKey: ['artwork', id, retryCount],
-    queryFn: async () => {
-      if (!id || id === ':id') {
-        console.log("Invalid artwork ID, using mock data");
-        const mockArtwork = getArtworkById('1');
-        if (mockArtwork) {
-          setArtwork(mockArtwork);
-          const mockArtist = getArtistById(mockArtwork.artistId);
-          if (mockArtist) setArtist(mockArtist);
-        }
-        return mockArtwork;
-      }
-      
-      try {
-        const { data: artworkData, error: artworkError } = await supabase
-          .from('artworks')
-          .select('*')
-          .eq('id', id)
-          .single();
-          
-        if (artworkError) throw artworkError;
-        
-        if (artworkData) {
-          const artworkFormatted: Artwork = {
-            id: artworkData.id,
-            title: artworkData.title,
-            description: artworkData.description,
-            image: artworkData.image,
-            artistId: artworkData.artist_id,
-            medium: artworkData.medium,
-            createdAt: artworkData.created_at,
-            likes: 0, 
-            comments: 0,
-            categories: artworkData.category ? [artworkData.category] : [],
-            dimensions: artworkData.aspectratio,
-            price: "$0",
-            onSale: false
-          };
-          
-          setArtwork(artworkFormatted);
-          
-          const { data: artistData, error: artistError } = await supabase
-            .from('artists')
-            .select('*')
-            .eq('id', artworkData.artist_id)
-            .single();
-          
-          if (artistError) {
-            console.error("Error fetching artist:", artistError);
-          } else if (artistData) {
-            const artistFormatted: Artist = {
-              id: artistData.id,
-              name: artistData.name,
-              bio: artistData.bio || "",
-              location: artistData.location || "Unknown",
-              profileImage: artistData.photo || "https://randomuser.me/api/portraits/lego/1.jpg",
-              coverImage: "https://images.unsplash.com/photo-1579548122080-c35fd6820ecb?q=80&w=2070",
-              followers: 0,
-              following: 0,
-            };
-            setArtist(artistFormatted);
-          } else {
-            console.log("No artist data from Supabase, trying mock data");
-            const mockArtist = getArtistById(artworkFormatted.artistId);
-            if (mockArtist) setArtist(mockArtist);
-          }
-          
-          return artworkFormatted;
-        }
-      } catch (e) {
-        console.log("Fallback to mock data", e);
-        const mockArtwork = getArtworkById(id);
-        if (mockArtwork) {
-          setArtwork(mockArtwork);
-          const mockArtist = getArtistById(mockArtwork.artistId);
-          if (mockArtist) setArtist(mockArtist);
-        }
-        return mockArtwork;
-      }
-    },
-    enabled: !!id
   });
 
   useEffect(() => {
@@ -326,7 +247,9 @@ const ARView = () => {
     setArViewActive(true);
     
     if (value) {
-      changeModel(selectedModel);
+      if (selectedModel && (!currentModel || currentModel.id !== selectedModel.id)) {
+        changeModel(selectedModel);
+      }
       toast.success("3D model view activated!");
     } else {
       toast.success("2D artwork view activated");
@@ -635,7 +558,7 @@ const ARView = () => {
       <div className="container mx-auto px-4 py-4 md:py-8 flex-grow">
         <h1 className="text-2xl md:text-3xl font-bold mb-2">AR Viewer</h1>
         <p className="text-muted-foreground mb-4 md:mb-8 text-sm md:text-base">
-          Experience "{artwork.title}" in your space with augmented reality
+          Experience "{artwork?.title || '3D Model'}" in your space with augmented reality
         </p>
         
         <div>
@@ -658,7 +581,7 @@ const ARView = () => {
                     <div className="w-full h-full">
                       <SketchfabEmbed
                         title={`3D Model - ${selectedModel.name}`}
-                        src={selectedModel.src}
+                        src={currentModel?.src || selectedModel.src}
                         onLoad={handleModelLoaded}
                         onError={handleModelError}
                       />
@@ -795,7 +718,7 @@ const ARView = () => {
             
             <div>
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
-                <h2 className="text-xl font-semibold mb-4">{artwork.title}</h2>
+                <h2 className="text-xl font-semibold mb-4">{artwork ? artwork.title : currentModel?.name || 'AR View'}</h2>
                 
                 {artist && (
                   <div className="flex items-center gap-3 mb-4">
@@ -810,7 +733,9 @@ const ARView = () => {
                   </div>
                 )}
                 
-                <p className="text-muted-foreground mb-6 text-sm md:text-base line-clamp-3 md:line-clamp-none">{artwork.description}</p>
+                <p className="text-muted-foreground mb-6 text-sm md:text-base line-clamp-3 md:line-clamp-none">
+                  {view3DMode && currentModel ? currentModel.description : artwork?.description}
+                </p>
                 
                 <Tabs defaultValue="ar">
                   <TabsList className="w-full mb-4 md:mb-6">
@@ -871,7 +796,7 @@ const ARView = () => {
                       )}
                     </div>
                     
-                    {artwork.dimensions && (
+                    {artwork?.dimensions && (
                       <div className="mt-4 pt-4 border-t">
                         <h3 className="text-xs md:text-sm font-medium mb-2 flex items-center">
                           <Ruler className="h-4 w-4 mr-2 text-muted-foreground" />
