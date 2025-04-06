@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { MODEL_OPTIONS } from '@/components/ar/ARModelSelector';
 
 // Add type declarations for model-viewer element
 declare global {
@@ -50,6 +51,7 @@ interface HTMLModelViewerElement extends HTMLElement {
   resetTurntableRotation: () => void;
   cameraOrbit: string;
   dispatchEvent: (event: CustomEvent) => boolean;
+  src?: string;
 }
 
 const ARWebXR = () => {
@@ -59,7 +61,25 @@ const ARWebXR = () => {
   const [arSupported, setArSupported] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedModelId, setSelectedModelId] = useState('1'); // Default to first model
   const isMobile = useIsMobile();
+
+  // Get the selected model
+  const selectedModel = MODEL_OPTIONS.find(model => model.id === selectedModelId) || MODEL_OPTIONS[0];
+
+  // Convert Sketchfab embed URL to GLB URL format for model-viewer
+  const getModelUrl = () => {
+    // This is a fallback model URL if we can't extract the Sketchfab ID
+    let modelUrl = '/model.glb'; 
+    
+    // Try to extract Sketchfab ID from the embed URL and form a GLB URL
+    if (selectedModel?.sketchfabId) {
+      // Use sketchfabId directly since we already have it
+      modelUrl = `https://sketchfab.com/models/${selectedModel.sketchfabId}/download`;
+    }
+    
+    return modelUrl;
+  };
 
   useEffect(() => {
     // Dynamically import the model-viewer Web Component
@@ -86,6 +106,15 @@ const ARWebXR = () => {
       document.body.removeChild(script);
     };
   }, []);
+
+  // Update the model source when the selected model changes
+  useEffect(() => {
+    if (modelViewerRef.current) {
+      setIsLoading(true);
+      const modelUrl = getModelUrl();
+      modelViewerRef.current.src = modelUrl;
+    }
+  }, [selectedModelId]);
 
   const handleModelLoad = () => {
     setIsLoading(false);
@@ -153,6 +182,10 @@ const ARWebXR = () => {
     }
   };
 
+  const changeModel = (modelId: string) => {
+    setSelectedModelId(modelId);
+  };
+
   return (
     <div className="relative h-screen w-full bg-black overflow-hidden">
       {/* Navigation */}
@@ -187,11 +220,26 @@ const ARWebXR = () => {
         </div>
       )}
 
+      {/* Model selection buttons */}
+      <div className="absolute top-4 right-4 z-10 flex gap-2">
+        {MODEL_OPTIONS.map((model) => (
+          <Button 
+            key={model.id}
+            variant={selectedModelId === model.id ? "default" : "outline"}
+            size="sm"
+            className="bg-black/30 text-white backdrop-blur-sm hover:bg-black/50"
+            onClick={() => changeModel(model.id)}
+          >
+            {model.name}
+          </Button>
+        ))}
+      </div>
+
       {/* model-viewer component */}
       <model-viewer
         ref={modelViewerRef as React.RefObject<HTMLElement>}
-        src="/model.glb"
-        alt="A 3D model viewable in AR"
+        src={getModelUrl()}
+        alt={`3D model of ${selectedModel.name}`}
         ar
         ar-modes="webxr scene-viewer quick-look"
         camera-controls
@@ -199,7 +247,7 @@ const ARWebXR = () => {
         shadow-intensity="1"
         environment-image="neutral"
         exposure="1"
-        poster="/placeholder.svg"
+        poster={selectedModel.thumbnail}
         ar-placement="floor"
         ar-scale="fixed"
         interaction-prompt="none"
@@ -350,11 +398,19 @@ const ARWebXR = () => {
         </div>
       )}
 
+      {/* AR support notice */}
       {!arSupported && (
         <div className="mt-2 text-center text-sm text-white/70 bg-black/30 backdrop-blur-sm rounded-lg p-2 absolute bottom-4 left-1/2 transform -translate-x-1/2">
           AR features may not be supported on this device or browser
         </div>
       )}
+
+      {/* Model information */}
+      <div className="absolute left-4 bottom-4 bg-black/30 backdrop-blur-sm rounded-lg p-3 max-w-xs text-white">
+        <h3 className="text-lg font-medium">{selectedModel.name}</h3>
+        <p className="text-xs text-white/70">By {selectedModel.creator}</p>
+        <p className="text-xs mt-1 text-white/80">{selectedModel.description}</p>
+      </div>
     </div>
   );
 };

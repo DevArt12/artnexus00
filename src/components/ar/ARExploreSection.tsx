@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -39,16 +40,16 @@ const ARExploreSection = () => {
     )
   ).slice(0, 4);
   
-  // Select 3D models
-  const featuredModels = MODEL_OPTIONS.slice(0, 3);
+  // Use our new 3D models
+  const featuredModels = MODEL_OPTIONS;
   
   const handleArtworkSelect = (artworkId: string) => {
     navigate(`/ar-view/${artworkId}`);
   };
   
   const handleModelSelect = (model: ARModel) => {
-    // For demo purposes, navigate to first artwork with model info in state
-    navigate(`/ar-view/${artworks[0].id}`, { state: { selectedModel: model } });
+    // Navigate to the WebXR experience with the selected model
+    navigate('/ar-webxr', { state: { selectedModel: model } });
   };
 
   return (
