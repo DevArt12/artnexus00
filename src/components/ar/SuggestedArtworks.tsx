@@ -1,6 +1,7 @@
 
 import { Artwork } from '@/data/mockData';
 import { motion } from 'framer-motion';
+import { IndianRupee } from 'lucide-react';
 
 interface SuggestedArtworksProps {
   artworks: Artwork[];
@@ -37,7 +38,12 @@ const SuggestedArtworks = ({
               />
             </div>
             <p className="text-sm font-medium truncate">{artwork.title}</p>
-            <p className="text-xs text-muted-foreground truncate">{artwork.categories.join(', ')}</p>
+            <p className="text-xs text-muted-foreground truncate">{artwork.medium || artwork.categories.join(', ')}</p>
+            {artwork.price && (
+              <p className="text-xs font-medium text-artnexus-purple flex items-center mt-1">
+                {artwork.price}
+              </p>
+            )}
           </motion.div>
         ))}
       </div>

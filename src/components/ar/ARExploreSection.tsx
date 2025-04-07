@@ -10,35 +10,45 @@ import { ARModel, MODEL_OPTIONS } from './ARModelSelector';
 import { Artwork, artworks, getArtistById } from '@/data/mockData';
 import { marketplaceItems } from '@/data/marketplaceData';
 
+// New artwork categories
+const artworkCategories = [
+  'Painting',
+  'Sculpture', 
+  'Digital Art',
+  'Photography',
+  'Mixed Media',
+  'Drawing',
+  'Printmaking',
+  'Textile'
+];
+
 const ARExploreSection = () => {
   const navigate = useNavigate();
-  const [selectedTab, setSelectedTab] = useState<'paintings' | 'sculptures'>('paintings');
+  const [selectedTab, setSelectedTab] = useState<string>('Painting');
   
-  // Replace paintings with one item from marketplace data and use new image
-  const paintings = [
-    {
-      id: marketplaceItems[0].id,
-      title: marketplaceItems[0].title,
-      description: marketplaceItems[0].description,
-      image: "https://www.freepik.com/search?format=search&img=1&last_filter=img&last_value=1&query=Painting&selection=1",
-      artistId: marketplaceItems[0].artist.id,
-      medium: marketplaceItems[0].medium,
-      createdAt: new Date().toISOString(),
-      likes: 0,
-      comments: 0,
-      categories: [marketplaceItems[0].category],
-      dimensions: marketplaceItems[0].dimensions || "24 x 36 inches",
-      price: `₹${(parseInt(marketplaceItems[0].price.replace('$', '').replace(',', '')) * 83).toLocaleString()}`,
-      onSale: marketplaceItems[0].status === "available"
-    }
-  ];
+  // Filter artworks by selected category
+  const getCategoryArtworks = (category: string) => {
+    return marketplaceItems
+      .filter(item => item.category.toLowerCase() === category.toLowerCase())
+      .slice(0, 4)
+      .map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        image: item.image,
+        artistId: item.artist.id,
+        medium: item.medium,
+        createdAt: new Date().toISOString(),
+        likes: 0,
+        comments: 0,
+        categories: [item.category],
+        dimensions: item.dimensions || "24 x 36 inches",
+        price: item.price,
+        onSale: item.status === "available"
+      }));
+  };
   
-  // Filter sculptures from artworks
-  const sculptures = artworks.filter(artwork => 
-    artwork.categories.some(cat => 
-      ['sculpture', '3d', 'installation', 'ceramic'].includes(cat.toLowerCase())
-    )
-  ).slice(0, 4);
+  const categoryArtworks = getCategoryArtworks(selectedTab);
   
   // Use our new 3D models
   const featuredModels = MODEL_OPTIONS;
@@ -64,7 +74,7 @@ const ARExploreSection = () => {
             </p>
           </div>
           <Button 
-            onClick={() => navigate('/ar-view/' + artworks[0].id)}
+            onClick={() => navigate('/ar-view/' + categoryArtworks[0]?.id || marketplaceItems[0].id)}
             className="mt-4 md:mt-0 bg-artnexus-purple hover:bg-artnexus-purple/90"
           >
             Try AR Now <ArrowRight className="ml-2 h-4 w-4" />
@@ -81,43 +91,34 @@ const ARExploreSection = () => {
                   <h3 className="text-xl font-semibold">2D Artworks in AR</h3>
                 </div>
                 
-                <Tabs defaultValue="paintings" className="w-full">
-                  <TabsList className="mb-4">
-                    <TabsTrigger 
-                      value="paintings" 
-                      onClick={() => setSelectedTab('paintings')}
-                    >
-                      Paintings
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="sculptures"
-                      onClick={() => setSelectedTab('sculptures')}
-                    >
-                      Other Artworks
-                    </TabsTrigger>
+                <Tabs defaultValue={selectedTab} className="w-full">
+                  <TabsList className="mb-4 flex flex-wrap">
+                    {artworkCategories.map(category => (
+                      <TabsTrigger 
+                        key={category}
+                        value={category} 
+                        onClick={() => setSelectedTab(category)}
+                      >
+                        {category}
+                      </TabsTrigger>
+                    ))}
                   </TabsList>
                   
-                  <TabsContent value="paintings" className="mt-0">
+                  <TabsContent value={selectedTab} className="mt-0">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {paintings.map((artwork) => (
-                        <ArtworkARCard 
-                          key={artwork.id} 
-                          artwork={artwork} 
-                          onClick={() => handleArtworkSelect(artwork.id)} 
-                        />
-                      ))}
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="sculptures" className="mt-0">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {sculptures.map((artwork) => (
-                        <ArtworkARCard 
-                          key={artwork.id} 
-                          artwork={artwork} 
-                          onClick={() => handleArtworkSelect(artwork.id)} 
-                        />
-                      ))}
+                      {categoryArtworks.length > 0 ? (
+                        categoryArtworks.map((artwork) => (
+                          <ArtworkARCard 
+                            key={artwork.id} 
+                            artwork={artwork} 
+                            onClick={() => handleArtworkSelect(artwork.id)} 
+                          />
+                        ))
+                      ) : (
+                        <p className="col-span-4 text-center py-8 text-gray-500">
+                          No artworks found in this category. Try another category.
+                        </p>
+                      )}
                     </div>
                   </TabsContent>
                 </Tabs>
@@ -135,6 +136,24 @@ const ARExploreSection = () => {
                 </div>
                 
                 <div className="space-y-4">
+                  {/* Zeus Statue Feature */}
+                  <div className="border rounded-lg p-3 hover:border-primary transition-colors cursor-pointer">
+                    <div className="flex items-center">
+                      <div className="w-16 h-16 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                        <img 
+                          src="https://media.sketchfab.com/models/19dbff643b3b466b9fcf2136ed7f8655/thumbnails/89b771a7052c4cee95b0a13eef47aa5d/1a58aba4e535450a9b6f9b6ee503b463.jpeg" 
+                          alt="Zeus Statue"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="ml-3 flex-1">
+                        <h4 className="text-sm font-medium">Zeus Statue</h4>
+                        <p className="text-xs text-muted-foreground">Katalina</p>
+                      </div>
+                      <Box className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
+
                   {featuredModels.map((model) => (
                     <ModelARCard 
                       key={model.id} 

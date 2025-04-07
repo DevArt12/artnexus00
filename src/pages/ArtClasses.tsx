@@ -12,6 +12,23 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { IndianRupee } from 'lucide-react';
+
+// Helper function to convert USD to INR
+const convertToINR = (price: string) => {
+  // Extract numeric value from price string (e.g., "$25" -> 25)
+  const numericValue = parseFloat(price.replace(/[^0-9.]/g, ''));
+  // Convert to INR (approximate exchange rate: 1 USD = 83 INR)
+  const inrValue = Math.round(numericValue * 83);
+  // Format as Indian rupees
+  return `₹${inrValue.toLocaleString('en-IN')}`;
+};
+
+// Convert all prices in mock data
+const convertedMockArtClasses = mockArtClasses.map(cls => ({
+  ...cls,
+  price: cls.price.startsWith('₹') ? cls.price : convertToINR(cls.price)
+}));
 
 // Levels and categories for filtering
 const levels = ["all", "beginner", "intermediate", "advanced"];
@@ -35,7 +52,11 @@ export default function ArtClasses() {
         throw error;
       }
       
-      return data;
+      // Convert prices to INR if data is from Supabase
+      return data?.map(cls => ({
+        ...cls,
+        price: cls.price.startsWith('₹') ? cls.price : convertToINR(cls.price)
+      })) || [];
     },
     meta: {
       onError: (error: any) => {
@@ -45,8 +66,8 @@ export default function ArtClasses() {
     }
   });
 
-  // Use mock data if Supabase data is empty or there's an error
-  const artClasses = (data && data.length > 0) ? data : mockArtClasses;
+  // Use converted mock data if Supabase data is empty or there's an error
+  const artClasses = (data && data.length > 0) ? data : convertedMockArtClasses;
 
   // Filter classes based on selected level, category, and search query
   const filteredClasses = artClasses.filter(cls => {
@@ -156,9 +177,9 @@ export default function ArtClasses() {
                       </div>
                     </CardContent>
                     <CardFooter className="flex justify-between items-center border-t pt-4">
-                      <div>
+                      <div className="flex items-center">
                         <p className="text-lg font-bold text-purple-600">{artClass.price}</p>
-                        <p className="text-xs text-gray-500">{artClass.duration}</p>
+                        <p className="text-xs text-gray-500 ml-2">{artClass.duration}</p>
                       </div>
                       <Link to={`/class/${artClass.id}`}>
                         <Button size="sm">View Details</Button>

@@ -18,7 +18,7 @@ const ARModels = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedModel, setSelectedModel] = useState<ARModel | null>(null);
   const [isModelLoading, setIsModelLoading] = useState(false);
-  const [showZeusStatue, setShowZeusStatue] = useState(false);
+  const [showZeusStatue, setShowZeusStatue] = useState(true);
   
   // Categories
   const categories = [
@@ -62,6 +62,23 @@ const ARModels = () => {
   const handleModelError = () => {
     setIsModelLoading(false);
   };
+
+  const handleZeusViewInAR = () => {
+    // Navigate to AR view with Zeus statue
+    navigate('/ar-webxr', { 
+      state: { 
+        selectedModel: {
+          id: 'zeus-statue',
+          name: 'Zeus Statue',
+          description: 'Ancient Greek statue of Zeus, the king of the gods in Greek mythology.',
+          creator: 'Katalina',
+          thumbnail: 'https://media.sketchfab.com/models/19dbff643b3b466b9fcf2136ed7f8655/thumbnails/89b771a7052c4cee95b0a13eef47aa5d/1a58aba4e535450a9b6f9b6ee503b463.jpeg',
+          sketchfabId: '19dbff643b3b466b9fcf2136ed7f8655',
+          src: 'https://sketchfab.com/models/19dbff643b3b466b9fcf2136ed7f8655/embed?autospin=1&preload=1&transparent=1'
+        }
+      } 
+    });
+  };
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -98,30 +115,38 @@ const ARModels = () => {
               height="480" 
               src="https://sketchfab.com/models/19dbff643b3b466b9fcf2136ed7f8655/embed?autospin=1&preload=1&transparent=1"
             ></iframe>
-            <p className="text-sm p-3 bg-white dark:bg-gray-800">
-              <a 
-                href="https://sketchfab.com/3d-models/zeus-statue-19dbff643b3b466b9fcf2136ed7f8655" 
-                target="_blank" 
-                rel="nofollow"
-                className="font-bold text-primary"
+            <div className="p-4 bg-white dark:bg-gray-800 flex justify-between items-center">
+              <p className="text-sm">
+                <a 
+                  href="https://sketchfab.com/3d-models/zeus-statue-19dbff643b3b466b9fcf2136ed7f8655" 
+                  target="_blank" 
+                  rel="nofollow"
+                  className="font-bold text-primary"
+                >
+                  Zeus Statue
+                </a> by <a 
+                  href="https://sketchfab.com/Katalina07" 
+                  target="_blank" 
+                  rel="nofollow"
+                  className="font-bold text-primary"
+                >
+                  Katalina
+                </a> on <a 
+                  href="https://sketchfab.com" 
+                  target="_blank" 
+                  rel="nofollow"
+                  className="font-bold text-primary"
+                >
+                  Sketchfab
+                </a>
+              </p>
+              <Button 
+                onClick={handleZeusViewInAR}
+                className="bg-artnexus-purple hover:bg-artnexus-purple/90"
               >
-                Zeus Statue
-              </a> by <a 
-                href="https://sketchfab.com/Katalina07" 
-                target="_blank" 
-                rel="nofollow"
-                className="font-bold text-primary"
-              >
-                Katalina
-              </a> on <a 
-                href="https://sketchfab.com" 
-                target="_blank" 
-                rel="nofollow"
-                className="font-bold text-primary"
-              >
-                Sketchfab
-              </a>
-            </p>
+                View in AR
+              </Button>
+            </div>
           </div>
         </div>
         
