@@ -972,10 +972,10 @@ const ARView = () => {
                         <span>{artwork.medium}</span>
                       </div>
                     )}
-                    {artwork.year && (
+                    {artwork.categories && artwork.categories[0] && (
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Year:</span>
-                        <span>{artwork.year}</span>
+                        <span>{artwork.categories[0]}</span>
                       </div>
                     )}
                   </div>

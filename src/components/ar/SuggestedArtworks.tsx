@@ -42,7 +42,7 @@ const SuggestedArtworks = ({
             {artwork.price && (
               <p className="text-xs font-medium text-artnexus-purple flex items-center mt-1">
                 <IndianRupee className="h-3 w-3 mr-1" />
-                {artwork.price.replace('$', '₹')}
+                {artwork.price.includes('$') ? artwork.price.replace('$', '₹') : artwork.price}
               </p>
             )}
           </motion.div>
