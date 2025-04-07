@@ -66,6 +66,23 @@ const ARView = () => {
 
   const isMobile = useIsMobile();
   
+  const { isLoading, error } = useQuery({
+    queryKey: ['artwork', id],
+    queryFn: async () => {
+      if (!id) return null;
+      const artworkData = getArtworkById(id);
+      if (artworkData) {
+        setArtwork(artworkData);
+        const artistData = getArtistById(artworkData.artistId);
+        if (artistData) {
+          setArtist(artistData);
+        }
+      }
+      return artworkData;
+    },
+    enabled: !!id,
+  });
+  
   const { 
     currentModel, 
     isLoading: modelIsLoading, 
