@@ -35,6 +35,12 @@ const SuggestedArtworks = ({
                 alt={artwork.title} 
                 className="w-full h-full object-cover"
                 loading="lazy"
+                onError={(e) => {
+                  // If the original image fails to load, use a fallback Unsplash image
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null; // Prevent infinite error loop
+                  target.src = "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80";
+                }}
               />
             </div>
             <p className="text-sm font-medium truncate">{artwork.title}</p>

@@ -75,11 +75,13 @@ const ARView = () => {
       
       let artworkData = getArtworkById(id);
       
+      // If this is Urban Symphony (id=1), replace it with our new artwork
       if (artworkData && artworkData.id === "1") {
         artworkData = {
           ...artworkData,
           title: "Abstract Elegance",
-          image: "https://www.freepik.com/search?format=search&img=1&last_filter=img&last_value=1&query=Painting&selection=1",
+          // Use a reliable Unsplash image instead of the Freepik URL that was failing
+          image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=890&q=80",
           description: "A contemporary painting exploring abstract forms and vibrant colors that invoke feelings of elegance and harmony.",
           price: "₹85,000"
         };
@@ -180,7 +182,8 @@ const ARView = () => {
       const recommended = getRecommendedArtworks(artwork.id, 5);
       setSuggestedArtworks(recommended);
       
-      setProcessedImageUrl("https://www.freepik.com/search?format=search&img=1&last_filter=img&last_value=1&query=Painting&selection=1");
+      // Set the processed image URL to a reliable Unsplash image
+      setProcessedImageUrl("https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=890&q=80");
       setImageLoading(false);
     } else {
       setSuggestedArtworks([]);
@@ -517,7 +520,8 @@ const ARView = () => {
   };
 
   const getArtworkImageUrl = () => {
-    return "https://www.freepik.com/search?format=search&img=1&last_filter=img&last_value=1&query=Painting&selection=1";
+    // Return a reliable Unsplash image instead of the failing Freepik URL
+    return "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=890&q=80";
   };
 
   const handleImageLoad = () => {
@@ -532,7 +536,8 @@ const ARView = () => {
     setImageError(true);
     
     if (artwork && retryCount === 0) {
-      const fallbackUrl = "https://www.freepik.com/search?format=search&img=1&last_filter=img&last_value=1&query=Painting&selection=1";
+      // Use a reliable Unsplash fallback image
+      const fallbackUrl = "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=765&q=80";
       console.log('Falling back to placeholder image:', fallbackUrl);
       setProcessedImageUrl(fallbackUrl);
       setRetryCount(retryCount + 1);
@@ -865,201 +870,3 @@ const ARView = () => {
                 <Tabs defaultValue="ar">
                   <TabsList className="w-full mb-4 md:mb-6">
                     <TabsTrigger value="ar" className="flex-1">
-                      <Camera className="h-4 w-4 mr-1 md:mr-2" />
-                      <span className="text-xs md:text-sm">AR View</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="3d" className="flex-1">
-                      <Box className="h-4 w-4 mr-1 md:mr-2" />
-                      <span className="text-xs md:text-sm">Virtual View</span>
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="ar">
-                    <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
-                      Place this artwork in your space using augmented reality.
-                    </p>
-                    <div className="space-y-2 md:space-y-3">
-                      <Button
-                        className="w-full"
-                        onClick={handleActivateAR}
-                        disabled={!isARSupported || (arViewActive && !view3DMode)}
-                      >
-                        <Camera className="h-4 w-4 mr-2" />
-                        {arViewActive && !view3DMode ? 'AR View Active' : 'View in AR'}
-                      </Button>
-                      
-                      {isARSupported && (
-                        <Button
-                          className="w-full"
-                          variant="outline"
-                          onClick={handleWallScan}
-                          disabled={!arViewActive || wallScanActive || view3DMode}
-                        >
-                          <Scan className="h-4 w-4 mr-2" />
-                          {wallScanActive ? 'Scanning...' : 'Scan Wall'}
-                        </Button>
-                      )}
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="3d">
-                    <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
-                      Experience this artwork in virtual 3D space.
-                    </p>
-                    <div className="space-y-2 md:space-y-3">
-                      <Button
-                        className="w-full"
-                        onClick={() => toggle3DView(true)}
-                        disabled={view3DMode}
-                      >
-                        <Box className="h-4 w-4 mr-2" />
-                        {view3DMode ? '3D View Active' : 'View 3D Model'}
-                      </Button>
-                      
-                      <Button
-                        className="w-full"
-                        variant="outline"
-                        onClick={() => toggle3DView(false)}
-                        disabled={!arViewActive || !view3DMode}
-                      >
-                        <Image className="h-4 w-4 mr-2" />
-                        View 2D Artwork
-                      </Button>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-              
-              {artwork?.price && (
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6 mt-4">
-                  <h3 className="text-lg font-semibold mb-3">Purchase Information</h3>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-muted-foreground">Price:</span>
-                    <span className="font-medium text-xl flex items-center">
-                      <IndianRupee className="h-4 w-4 mr-1" />
-                      {artwork.price.replace('$', '₹')}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-muted-foreground">Availability:</span>
-                    <span className="text-green-500 flex items-center">
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Available
-                    </span>
-                  </div>
-                  <Button className="w-full">
-                    Purchase Artwork
-                  </Button>
-                </div>
-              )}
-              
-              {artwork && artwork.dimensions && (
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6 mt-4">
-                  <h3 className="text-lg font-semibold mb-3">Artwork Details</h3>
-                  <div className="space-y-2">
-                    {artwork.dimensions && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Dimensions:</span>
-                        <span className="flex items-center">
-                          <Ruler className="h-4 w-4 mr-1" />
-                          {artwork.dimensions}
-                        </span>
-                      </div>
-                    )}
-                    {artwork.medium && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Medium:</span>
-                        <span>{artwork.medium}</span>
-                      </div>
-                    )}
-                    {artwork.categories && artwork.categories[0] && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Year:</span>
-                        <span>{artwork.categories[0]}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {suggestedArtworks.length > 0 && (
-            <SuggestedArtworks 
-              artworks={suggestedArtworks} 
-              onSelectArtwork={viewOtherArtwork}
-            />
-          )}
-          
-          {recentlyViewed.length > 0 && (
-            <SuggestedArtworks
-              artworks={recentlyViewed.filter(art => art.id !== id)}
-              onSelectArtwork={viewOtherArtwork}
-              title="Recently Viewed"
-            />
-          )}
-        </div>
-      </div>
-      
-      <Footer />
-      
-      {showCollectionDialog && (
-        <Dialog open={showCollectionDialog} onOpenChange={setShowCollectionDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Save to Collection</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-2 mt-4">
-              {collections.length === 0 ? (
-                <p className="text-center text-muted-foreground">
-                  You don't have any collections yet. Create one in your profile.
-                </p>
-              ) : (
-                collections.map(collection => (
-                  <div 
-                    key={collection.id}
-                    className="flex items-center justify-between p-3 border rounded-md cursor-pointer hover:bg-accent transition-colors"
-                    onClick={() => addToCollection(collection.id)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100">
-                        <img 
-                          src={collection.coverImage || '/placeholder.svg'} 
-                          alt={collection.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = '/placeholder.svg';
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <p className="font-medium">{collection.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {collection.artworks.length} {collection.artworks.length === 1 ? 'artwork' : 'artworks'}
-                        </p>
-                      </div>
-                    </div>
-                    <Save className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                ))
-              )}
-            </div>
-            <Button 
-              variant="outline" 
-              className="w-full mt-4"
-              onClick={() => {
-                setShowCollectionDialog(false);
-                navigate('/collections');
-              }}
-            >
-              <List className="h-4 w-4 mr-2" />
-              Manage Collections
-            </Button>
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
-  );
-};
-
-export default ARView;
