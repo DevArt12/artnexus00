@@ -73,10 +73,8 @@ const ARView = () => {
     queryFn: async () => {
       if (!id) return null;
       
-      // Use the new Freepik artwork instead of Urban Symphony
       let artworkData = getArtworkById(id);
       
-      // If this is Urban Symphony (id=1), replace it with our new artwork
       if (artworkData && artworkData.id === "1") {
         artworkData = {
           ...artworkData,
@@ -171,7 +169,6 @@ const ARView = () => {
     updateRecentlyViewed();
     
     return () => {
-      // Clean up camera when component unmounts
       if (cameraActive) {
         disableCamera();
       }
@@ -183,7 +180,6 @@ const ARView = () => {
       const recommended = getRecommendedArtworks(artwork.id, 5);
       setSuggestedArtworks(recommended);
       
-      // Set the processed image URL to the Freepik URL for all artworks
       setProcessedImageUrl("https://www.freepik.com/search?format=search&img=1&last_filter=img&last_value=1&query=Painting&selection=1");
       setImageLoading(false);
     } else {
@@ -381,7 +377,6 @@ const ARView = () => {
         if (context) {
           context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
           
-          // Draw the artwork overlay on the screenshot if visible
           const img = imageRef.current;
           if (img) {
             const x = (canvasElement.width - img.width) / 2;
@@ -397,7 +392,6 @@ const ARView = () => {
           }
           
           try {
-            // Convert to data URL and prompt download
             const dataUrl = canvasElement.toDataURL('image/png');
             const link = document.createElement('a');
             link.href = dataUrl;
@@ -537,9 +531,7 @@ const ARView = () => {
     setImageLoading(false);
     setImageError(true);
     
-    // If we have a retry option, let's use a fallback image
     if (artwork && retryCount === 0) {
-      // Let's try to use a fallback placeholder image
       const fallbackUrl = "https://www.freepik.com/search?format=search&img=1&last_filter=img&last_value=1&query=Painting&selection=1";
       console.log('Falling back to placeholder image:', fallbackUrl);
       setProcessedImageUrl(fallbackUrl);
@@ -892,4 +884,182 @@ const ARView = () => {
                         onClick={handleActivateAR}
                         disabled={!isARSupported || (arViewActive && !view3DMode)}
                       >
-                        <Camera className="h-4 w-
+                        <Camera className="h-4 w-4 mr-2" />
+                        {arViewActive && !view3DMode ? 'AR View Active' : 'View in AR'}
+                      </Button>
+                      
+                      {isARSupported && (
+                        <Button
+                          className="w-full"
+                          variant="outline"
+                          onClick={handleWallScan}
+                          disabled={!arViewActive || wallScanActive || view3DMode}
+                        >
+                          <Scan className="h-4 w-4 mr-2" />
+                          {wallScanActive ? 'Scanning...' : 'Scan Wall'}
+                        </Button>
+                      )}
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="3d">
+                    <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
+                      Experience this artwork in virtual 3D space.
+                    </p>
+                    <div className="space-y-2 md:space-y-3">
+                      <Button
+                        className="w-full"
+                        onClick={() => toggle3DView(true)}
+                        disabled={view3DMode}
+                      >
+                        <Box className="h-4 w-4 mr-2" />
+                        {view3DMode ? '3D View Active' : 'View 3D Model'}
+                      </Button>
+                      
+                      <Button
+                        className="w-full"
+                        variant="outline"
+                        onClick={() => toggle3DView(false)}
+                        disabled={!arViewActive || !view3DMode}
+                      >
+                        <Image className="h-4 w-4 mr-2" />
+                        View 2D Artwork
+                      </Button>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+              
+              {artwork?.price && (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6 mt-4">
+                  <h3 className="text-lg font-semibold mb-3">Purchase Information</h3>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-muted-foreground">Price:</span>
+                    <span className="font-medium text-xl flex items-center">
+                      <IndianRupee className="h-4 w-4 mr-1" />
+                      {artwork.price.replace('$', '₹')}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-muted-foreground">Availability:</span>
+                    <span className="text-green-500 flex items-center">
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Available
+                    </span>
+                  </div>
+                  <Button className="w-full">
+                    Purchase Artwork
+                  </Button>
+                </div>
+              )}
+              
+              {artwork && artwork.dimensions && (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6 mt-4">
+                  <h3 className="text-lg font-semibold mb-3">Artwork Details</h3>
+                  <div className="space-y-2">
+                    {artwork.dimensions && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Dimensions:</span>
+                        <span className="flex items-center">
+                          <Ruler className="h-4 w-4 mr-1" />
+                          {artwork.dimensions}
+                        </span>
+                      </div>
+                    )}
+                    {artwork.medium && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Medium:</span>
+                        <span>{artwork.medium}</span>
+                      </div>
+                    )}
+                    {artwork.year && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Year:</span>
+                        <span>{artwork.year}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {suggestedArtworks.length > 0 && (
+            <SuggestedArtworks 
+              artworks={suggestedArtworks} 
+              onSelectArtwork={viewOtherArtwork}
+            />
+          )}
+          
+          {recentlyViewed.length > 0 && (
+            <SuggestedArtworks
+              artworks={recentlyViewed.filter(art => art.id !== id)}
+              onSelectArtwork={viewOtherArtwork}
+              title="Recently Viewed"
+            />
+          )}
+        </div>
+      </div>
+      
+      <Footer />
+      
+      {showCollectionDialog && (
+        <Dialog open={showCollectionDialog} onOpenChange={setShowCollectionDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Save to Collection</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 mt-4">
+              {collections.length === 0 ? (
+                <p className="text-center text-muted-foreground">
+                  You don't have any collections yet. Create one in your profile.
+                </p>
+              ) : (
+                collections.map(collection => (
+                  <div 
+                    key={collection.id}
+                    className="flex items-center justify-between p-3 border rounded-md cursor-pointer hover:bg-accent transition-colors"
+                    onClick={() => addToCollection(collection.id)}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100">
+                        <img 
+                          src={collection.coverImage || '/placeholder.svg'} 
+                          alt={collection.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = '/placeholder.svg';
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <p className="font-medium">{collection.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {collection.artworks.length} {collection.artworks.length === 1 ? 'artwork' : 'artworks'}
+                        </p>
+                      </div>
+                    </div>
+                    <Save className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                ))
+              )}
+            </div>
+            <Button 
+              variant="outline" 
+              className="w-full mt-4"
+              onClick={() => {
+                setShowCollectionDialog(false);
+                navigate('/collections');
+              }}
+            >
+              <List className="h-4 w-4 mr-2" />
+              Manage Collections
+            </Button>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+};
+
+export default ARView;
