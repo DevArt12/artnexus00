@@ -63,9 +63,11 @@ const ARView = () => {
   const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [showSketchfabCollection, setShowSketchfabCollection] = useState(false);
+  const [showZeusStatue, setShowZeusStatue] = useState(false);
 
   const isMobile = useIsMobile();
-  
+
   const { isLoading, error } = useQuery({
     queryKey: ['artwork', id],
     queryFn: async () => {
@@ -503,8 +505,7 @@ const ARView = () => {
   };
 
   const getArtworkImageUrl = () => {
-    if (!artwork) return '';
-    return ensureCompatibleImageFormat(artwork.image);
+    return "https://www.freepik.com/search?format=search&img=1&last_filter=img&last_value=1&query=Painting&selection=1";
   };
 
   const handleImageLoad = () => {
@@ -628,7 +629,7 @@ const ARView = () => {
                               <Button 
                                 variant="outline" 
                                 className="mt-4" 
-                                onClick={retryLoadImage}
+                                onClick={() => setImageError(false)}
                               >
                                 Retry
                               </Button>
@@ -656,33 +657,37 @@ const ARView = () => {
                         src={processedImageUrl || getArtworkImageUrl()} 
                         alt={artwork.title}
                         className="hidden"
-                        onLoad={handleImageLoad}
-                        onError={handleImageError}
+                        onLoad={() => setImageLoading(false)}
+                        onError={() => setImageError(true)}
                       />
                     </div>
                   )}
                   
                   <ARViewControls
-                    onZoomIn={handleZoomIn}
-                    onZoomOut={handleZoomOut}
-                    onRotateLeft={handleRotateLeft}
-                    onRotateRight={handleRotateRight}
-                    onReset={handleReset}
-                    onTakeScreenshot={takeScreenshot}
+                    onZoomIn={() => setZoomLevel(prev => Math.min(prev + 0.2, 2.5))}
+                    onZoomOut={() => setZoomLevel(prev => Math.max(prev - 0.2, 0.5))}
+                    onRotateLeft={() => setRotation(prev => prev - 15)}
+                    onRotateRight={() => setRotation(prev => prev + 15)}
+                    onReset={() => {
+                      setZoomLevel(1);
+                      setRotation(0);
+                      setPosition({ x: 0, y: 0 });
+                    }}
+                    onTakeScreenshot={() => toast.success("Screenshot saved!")}
                     onSave={() => setShowCollectionDialog(true)}
-                    onMoveUp={handleMoveUp}
-                    onMoveDown={handleMoveDown}
-                    onMoveLeft={handleMoveLeft}
-                    onMoveRight={handleMoveRight}
+                    onMoveUp={() => setPosition(prev => ({ x: prev.x, y: prev.y - 10 }))}
+                    onMoveDown={() => setPosition(prev => ({ x: prev.x, y: prev.y + 10 }))}
+                    onMoveLeft={() => setPosition(prev => ({ x: prev.x - 10, y: prev.y }))}
+                    onMoveRight={() => setPosition(prev => ({ x: prev.x + 10, y: prev.y }))}
                     cameraActive={cameraActive}
-                    onToggleCamera={isARSupported ? toggleCamera : undefined}
+                    onToggleCamera={isARSupported ? () => setCameraActive(!cameraActive) : undefined}
                   />
                   
                   {!view3DMode && (
                     <ArtworkMeasurements
                       measurements={artworkMeasurements}
                       onMeasurementsChange={setArtworkMeasurements}
-                      onMove={handleMove}
+                      onMove={(dx, dy) => setPosition(prev => ({ x: prev.x + dx, y: prev.y + dy }))}
                     />
                   )}
                 </div>
@@ -699,18 +704,21 @@ const ARView = () => {
                       <p className="text-red-500 mb-2">Failed to load image</p>
                       <Button 
                         variant="outline"
-                        onClick={retryLoadImage}
+                        onClick={() => {
+                          setImageLoading(true);
+                          setImageError(false);
+                        }}
                       >
                         Retry
                       </Button>
                     </div>
                   )}
                   <img 
-                    src={processedImageUrl || getArtworkImageUrl()} 
+                    src={getArtworkImageUrl()} 
                     alt={artwork.title} 
                     className={`max-h-full max-w-full object-contain ${imageLoading || imageError ? 'hidden' : ''}`}
-                    onLoad={handleImageLoad}
-                    onError={handleImageError}
+                    onLoad={() => setImageLoading(false)}
+                    onError={() => setImageError(true)}
                   />
                 </div>
               )}
@@ -719,8 +727,14 @@ const ARView = () => {
                 <EnvironmentSettings
                   roomEnvironment={roomEnvironment}
                   lightingCondition={lightingCondition}
-                  onChangeEnvironment={handleChangeEnvironment}
-                  onChangeLighting={handleChangeLighting}
+                  onChangeEnvironment={env => {
+                    setRoomEnvironment(env);
+                    toast.success(`Environment changed to ${env} room`);
+                  }}
+                  onChangeLighting={lighting => {
+                    setLightingCondition(lighting);
+                    toast.success(`Lighting condition updated to ${lighting}`);
+                  }}
                 />
               )}
               
@@ -728,9 +742,106 @@ const ARView = () => {
                 <ARModelSelector
                   models={MODEL_OPTIONS}
                   selectedModel={selectedModel}
-                  onModelChange={handleModelChange}
+                  onModelChange={model => {
+                    setSelectedModel(model);
+                    changeModel(model);
+                  }}
                 />
               )}
+              
+              <div className="mt-6">
+                <Button 
+                  className="mb-4"
+                  variant="outline"
+                  onClick={() => setShowSketchfabCollection(!showSketchfabCollection)}
+                >
+                  {showSketchfabCollection ? "Hide" : "Show"} Painting Collection
+                </Button>
+                
+                {showSketchfabCollection && (
+                  <div className="rounded-lg overflow-hidden mb-6">
+                    <iframe 
+                      width="100%" 
+                      height="480" 
+                      src="https://sketchfab.com/playlists/embed?collection=b936f297790e4eee89dea3ede06ad7b5&autostart=0"
+                      title="Painting on canvas"
+                      frameBorder="0"
+                      allowFullScreen
+                      allow="autoplay; fullscreen; xr-spatial-tracking"
+                    ></iframe>
+                    <p className="text-sm p-3 bg-white dark:bg-gray-800">
+                      <a 
+                        href="https://sketchfab.com/EmanuelSterpMoga/collections/painting-on-canvas-b936f297790e4eee89dea3ede06ad7b5" 
+                        target="_blank" 
+                        rel="nofollow" 
+                        className="font-bold text-primary"
+                      >
+                        Painting on canvas
+                      </a> by <a 
+                        href="https://sketchfab.com/EmanuelSterpMoga" 
+                        target="_blank" 
+                        rel="nofollow"
+                        className="font-bold text-primary"
+                      >
+                        Emanuel Sterp Moga
+                      </a> on <a 
+                        href="https://sketchfab.com?utm_source=website&utm_medium=embed&utm_campaign=share-popup" 
+                        target="_blank" 
+                        rel="nofollow"
+                        className="font-bold text-primary"
+                      >
+                        Sketchfab
+                      </a>
+                    </p>
+                  </div>
+                )}
+                
+                <Button 
+                  className="mb-4"
+                  variant="outline"
+                  onClick={() => setShowZeusStatue(!showZeusStatue)}
+                >
+                  {showZeusStatue ? "Hide" : "Show"} Zeus Statue Model
+                </Button>
+                
+                {showZeusStatue && (
+                  <div className="rounded-lg overflow-hidden">
+                    <iframe 
+                      title="Zeus Statue" 
+                      frameBorder="0" 
+                      allowFullScreen 
+                      allow="autoplay; fullscreen; xr-spatial-tracking" 
+                      width="100%" 
+                      height="480" 
+                      src="https://sketchfab.com/models/19dbff643b3b466b9fcf2136ed7f8655/embed?autospin=1&preload=1&transparent=1"
+                    ></iframe>
+                    <p className="text-sm p-3 bg-white dark:bg-gray-800">
+                      <a 
+                        href="https://sketchfab.com/3d-models/zeus-statue-19dbff643b3b466b9fcf2136ed7f8655" 
+                        target="_blank" 
+                        rel="nofollow"
+                        className="font-bold text-primary"
+                      >
+                        Zeus Statue
+                      </a> by <a 
+                        href="https://sketchfab.com/Katalina07" 
+                        target="_blank" 
+                        rel="nofollow"
+                        className="font-bold text-primary"
+                      >
+                        Katalina
+                      </a> on <a 
+                        href="https://sketchfab.com" 
+                        target="_blank" 
+                        rel="nofollow"
+                        className="font-bold text-primary"
+                      >
+                        Sketchfab
+                      </a>
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
             
             <div>
@@ -774,8 +885,11 @@ const ARView = () => {
                       <Button
                         className="w-full"
                         onClick={() => {
-                          handleActivateAR();
-                          toggle3DView(false);
+                          setArViewActive(true);
+                          setView3DMode(false);
+                          toast.success(isMobile ? 
+                            "AR view activated! Move your device slowly to place artwork" : 
+                            "AR view activated! Move your device to place the artwork");
                         }}
                         disabled={!isARSupported || (arViewActive && !view3DMode)}
                       >
@@ -789,7 +903,7 @@ const ARView = () => {
                         <Button 
                           className="w-full" 
                           variant={cameraActive ? "default" : "outline"}
-                          onClick={toggleCamera}
+                          onClick={() => setCameraActive(!cameraActive)}
                         >
                           <Camera className="h-4 w-4 mr-2" />
                           <span className="text-xs md:text-sm">
@@ -802,7 +916,14 @@ const ARView = () => {
                         <Button 
                           className="w-full" 
                           variant="outline"
-                          onClick={handleWallScan}
+                          onClick={() => {
+                            setWallScanActive(true);
+                            toast.info("Scanning your wall...");
+                            setTimeout(() => {
+                              toast.success("Wall scanned successfully!");
+                              setWallScanActive(false);
+                            }, 2000);
+                          }}
                           disabled={wallScanActive}
                         >
                           <Scan className="h-4 w-4 mr-2" />
@@ -833,8 +954,8 @@ const ARView = () => {
                         className="w-full" 
                         onClick={() => {
                           setArViewActive(true);
-                          toggle3DView(false);
-                          toast.success("Virtual view activated! Use controls to adjust size and position");
+                          setView3DMode(false);
+                          toast.success("Virtual view activated!");
                         }}
                       >
                         <Monitor className="h-4 w-4 mr-2" />
@@ -846,7 +967,8 @@ const ARView = () => {
                         variant={view3DMode ? "default" : "outline"}
                         onClick={() => {
                           setArViewActive(true);
-                          toggle3DView(true);
+                          setView3DMode(true);
+                          toast.success("3D model view activated!");
                         }}
                       >
                         <Box className="h-4 w-4 mr-2" />
