@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Camera, Box, Home, Scan, CheckCircle,
-  Share2, Save, List, Image, Monitor, Ruler
+  Share2, Save, List, Image, Monitor, Ruler, IndianRupee
 } from 'lucide-react';
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,6 +22,7 @@ import EnvironmentSettings from '@/components/ar/EnvironmentSettings';
 import { useIsMobile } from '@/hooks/use-mobile';
 import SketchfabEmbed from '@/components/ar/SketchfabEmbed';
 import { useSketchfabModel } from '@/hooks/use-sketchfab-model';
+import SuggestedArtworks from '@/components/ar/SuggestedArtworks';
 
 interface Collection {
   id: string;
@@ -42,7 +43,6 @@ const ARView = () => {
   const [rotation, setRotation] = useState(0);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [recentlyViewed, setRecentlyViewed] = useState<Artwork[]>([]);
-  const [artwork, setArtwork] = useState<Artwork | null>(null);
   const [artist, setArtist] = useState<Artist | null>(null);
   const [suggestedArtworks, setSuggestedArtworks] = useState<Artwork[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
@@ -68,18 +68,32 @@ const ARView = () => {
 
   const isMobile = useIsMobile();
 
-  const { isLoading, error } = useQuery({
+  const { data: artwork, isLoading, error } = useQuery({
     queryKey: ['artwork', id],
     queryFn: async () => {
       if (!id) return null;
-      const artworkData = getArtworkById(id);
+      
+      // Use the new Freepik artwork instead of Urban Symphony
+      let artworkData = getArtworkById(id);
+      
+      // If this is Urban Symphony (id=1), replace it with our new artwork
+      if (artworkData && artworkData.id === "1") {
+        artworkData = {
+          ...artworkData,
+          title: "Abstract Elegance",
+          image: "https://www.freepik.com/search?format=search&img=1&last_filter=img&last_value=1&query=Painting&selection=1",
+          description: "A contemporary painting exploring abstract forms and vibrant colors that invoke feelings of elegance and harmony.",
+          price: "₹85,000"
+        };
+      }
+      
       if (artworkData) {
-        setArtwork(artworkData);
         const artistData = getArtistById(artworkData.artistId);
         if (artistData) {
           setArtist(artistData);
         }
       }
+      
       return artworkData;
     },
     enabled: !!id,
@@ -168,6 +182,10 @@ const ARView = () => {
     if (artwork) {
       const recommended = getRecommendedArtworks(artwork.id, 5);
       setSuggestedArtworks(recommended);
+      
+      // Set the processed image URL to the Freepik URL for all artworks
+      setProcessedImageUrl("https://www.freepik.com/search?format=search&img=1&last_filter=img&last_value=1&query=Painting&selection=1");
+      setImageLoading(false);
     } else {
       setSuggestedArtworks([]);
     }
@@ -202,7 +220,7 @@ const ARView = () => {
       const container = document.getElementById('ar-view-container');
       if (container) {
         if (document.getElementById('ar-camera-feed')) {
-          document.getElementById('ar-camera-feed').remove();
+          document.getElementById('ar-camera-feed')?.remove();
         }
         
         container.prepend(videoElement);
@@ -522,7 +540,7 @@ const ARView = () => {
     // If we have a retry option, let's use a fallback image
     if (artwork && retryCount === 0) {
       // Let's try to use a fallback placeholder image
-      const fallbackUrl = '/placeholder.svg';
+      const fallbackUrl = "https://www.freepik.com/search?format=search&img=1&last_filter=img&last_value=1&query=Painting&selection=1";
       console.log('Falling back to placeholder image:', fallbackUrl);
       setProcessedImageUrl(fallbackUrl);
       setRetryCount(retryCount + 1);
@@ -657,37 +675,33 @@ const ARView = () => {
                         src={processedImageUrl || getArtworkImageUrl()} 
                         alt={artwork.title}
                         className="hidden"
-                        onLoad={() => setImageLoading(false)}
-                        onError={() => setImageError(true)}
+                        onLoad={handleImageLoad}
+                        onError={handleImageError}
                       />
                     </div>
                   )}
                   
                   <ARViewControls
-                    onZoomIn={() => setZoomLevel(prev => Math.min(prev + 0.2, 2.5))}
-                    onZoomOut={() => setZoomLevel(prev => Math.max(prev - 0.2, 0.5))}
-                    onRotateLeft={() => setRotation(prev => prev - 15)}
-                    onRotateRight={() => setRotation(prev => prev + 15)}
-                    onReset={() => {
-                      setZoomLevel(1);
-                      setRotation(0);
-                      setPosition({ x: 0, y: 0 });
-                    }}
-                    onTakeScreenshot={() => toast.success("Screenshot saved!")}
+                    onZoomIn={handleZoomIn}
+                    onZoomOut={handleZoomOut}
+                    onRotateLeft={handleRotateLeft}
+                    onRotateRight={handleRotateRight}
+                    onReset={handleReset}
+                    onTakeScreenshot={takeScreenshot}
                     onSave={() => setShowCollectionDialog(true)}
-                    onMoveUp={() => setPosition(prev => ({ x: prev.x, y: prev.y - 10 }))}
-                    onMoveDown={() => setPosition(prev => ({ x: prev.x, y: prev.y + 10 }))}
-                    onMoveLeft={() => setPosition(prev => ({ x: prev.x - 10, y: prev.y }))}
-                    onMoveRight={() => setPosition(prev => ({ x: prev.x + 10, y: prev.y }))}
+                    onMoveUp={handleMoveUp}
+                    onMoveDown={handleMoveDown}
+                    onMoveLeft={handleMoveLeft}
+                    onMoveRight={handleMoveRight}
                     cameraActive={cameraActive}
-                    onToggleCamera={isARSupported ? () => setCameraActive(!cameraActive) : undefined}
+                    onToggleCamera={isARSupported ? toggleCamera : undefined}
                   />
                   
                   {!view3DMode && (
                     <ArtworkMeasurements
                       measurements={artworkMeasurements}
                       onMeasurementsChange={setArtworkMeasurements}
-                      onMove={(dx, dy) => setPosition(prev => ({ x: prev.x + dx, y: prev.y + dy }))}
+                      onMove={handleMove}
                     />
                   )}
                 </div>
@@ -727,14 +741,8 @@ const ARView = () => {
                 <EnvironmentSettings
                   roomEnvironment={roomEnvironment}
                   lightingCondition={lightingCondition}
-                  onChangeEnvironment={env => {
-                    setRoomEnvironment(env);
-                    toast.success(`Environment changed to ${env} room`);
-                  }}
-                  onChangeLighting={lighting => {
-                    setLightingCondition(lighting);
-                    toast.success(`Lighting condition updated to ${lighting}`);
-                  }}
+                  onChangeEnvironment={handleChangeEnvironment}
+                  onChangeLighting={handleChangeLighting}
                 />
               )}
               
@@ -742,10 +750,7 @@ const ARView = () => {
                 <ARModelSelector
                   models={MODEL_OPTIONS}
                   selectedModel={selectedModel}
-                  onModelChange={model => {
-                    setSelectedModel(model);
-                    changeModel(model);
-                  }}
+                  onModelChange={handleModelChange}
                 />
               )}
               
@@ -884,108 +889,7 @@ const ARView = () => {
                     <div className="space-y-2 md:space-y-3">
                       <Button
                         className="w-full"
-                        onClick={() => {
-                          setArViewActive(true);
-                          setView3DMode(false);
-                          toast.success(isMobile ? 
-                            "AR view activated! Move your device slowly to place artwork" : 
-                            "AR view activated! Move your device to place the artwork");
-                        }}
+                        onClick={handleActivateAR}
                         disabled={!isARSupported || (arViewActive && !view3DMode)}
                       >
-                        <Camera className="h-4 w-4 mr-2" />
-                        <span className="text-xs md:text-sm">
-                          {arViewActive && !view3DMode ? 'AR View Active' : 'Start AR View'}
-                        </span>
-                      </Button>
-                      
-                      {arViewActive && !view3DMode && isARSupported && (
-                        <Button 
-                          className="w-full" 
-                          variant={cameraActive ? "default" : "outline"}
-                          onClick={() => setCameraActive(!cameraActive)}
-                        >
-                          <Camera className="h-4 w-4 mr-2" />
-                          <span className="text-xs md:text-sm">
-                            {cameraActive ? 'Disable Camera' : 'Enable Camera'}
-                          </span>
-                        </Button>
-                      )}
-                      
-                      {arViewActive && !view3DMode && (
-                        <Button 
-                          className="w-full" 
-                          variant="outline"
-                          onClick={() => {
-                            setWallScanActive(true);
-                            toast.info("Scanning your wall...");
-                            setTimeout(() => {
-                              toast.success("Wall scanned successfully!");
-                              setWallScanActive(false);
-                            }, 2000);
-                          }}
-                          disabled={wallScanActive}
-                        >
-                          <Scan className="h-4 w-4 mr-2" />
-                          <span className="text-xs md:text-sm">
-                            {wallScanActive ? 'Scanning...' : 'Scan Your Wall'}
-                          </span>
-                        </Button>
-                      )}
-                    </div>
-                    
-                    {artwork?.dimensions && (
-                      <div className="mt-4 pt-4 border-t">
-                        <h3 className="text-xs md:text-sm font-medium mb-2 flex items-center">
-                          <Ruler className="h-4 w-4 mr-2 text-muted-foreground" />
-                          Actual Dimensions
-                        </h3>
-                        <p className="text-xs md:text-sm">{artwork.dimensions}</p>
-                      </div>
-                    )}
-                  </TabsContent>
-                  
-                  <TabsContent value="3d">
-                    <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
-                      Explore artworks as 3D models or in a virtual environment.
-                    </p>
-                    <div className="space-y-2 md:space-y-3">
-                      <Button 
-                        className="w-full" 
-                        onClick={() => {
-                          setArViewActive(true);
-                          setView3DMode(false);
-                          toast.success("Virtual view activated!");
-                        }}
-                      >
-                        <Monitor className="h-4 w-4 mr-2" />
-                        <span className="text-xs md:text-sm">2D Virtual View</span>
-                      </Button>
-                      
-                      <Button 
-                        className="w-full" 
-                        variant={view3DMode ? "default" : "outline"}
-                        onClick={() => {
-                          setArViewActive(true);
-                          setView3DMode(true);
-                          toast.success("3D model view activated!");
-                        }}
-                      >
-                        <Box className="h-4 w-4 mr-2" />
-                        <span className="text-xs md:text-sm">3D Model View</span>
-                      </Button>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <Footer />
-    </div>
-  );
-};
-
-export default ARView;
+                        <Camera className="h-4 w-

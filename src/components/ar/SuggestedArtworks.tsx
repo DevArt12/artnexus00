@@ -41,7 +41,8 @@ const SuggestedArtworks = ({
             <p className="text-xs text-muted-foreground truncate">{artwork.medium || artwork.categories.join(', ')}</p>
             {artwork.price && (
               <p className="text-xs font-medium text-artnexus-purple flex items-center mt-1">
-                {artwork.price}
+                <IndianRupee className="h-3 w-3 mr-1" />
+                {artwork.price.replace('$', '₹')}
               </p>
             )}
           </motion.div>
