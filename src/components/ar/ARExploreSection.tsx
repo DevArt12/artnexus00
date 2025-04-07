@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Box, ArrowRight, Image, ScanLine } from 'lucide-react';
+import { Box, ArrowRight, Image, ScanLine, IndianRupee } from 'lucide-react';
 import { ARModel, MODEL_OPTIONS } from './ARModelSelector';
 import { Artwork, artworks, getArtistById } from '@/data/mockData';
 import { marketplaceItems } from '@/data/marketplaceData';
@@ -14,13 +14,13 @@ const ARExploreSection = () => {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState<'paintings' | 'sculptures'>('paintings');
   
-  // Replace paintings with one item from marketplace data
+  // Replace paintings with one item from marketplace data and use new image
   const paintings = [
     {
       id: marketplaceItems[0].id,
       title: marketplaceItems[0].title,
       description: marketplaceItems[0].description,
-      image: marketplaceItems[0].image,
+      image: "https://www.freepik.com/search?format=search&img=1&last_filter=img&last_value=1&query=Painting&selection=1",
       artistId: marketplaceItems[0].artist.id,
       medium: marketplaceItems[0].medium,
       createdAt: new Date().toISOString(),
@@ -28,7 +28,7 @@ const ARExploreSection = () => {
       comments: 0,
       categories: [marketplaceItems[0].category],
       dimensions: marketplaceItems[0].dimensions || "24 x 36 inches",
-      price: marketplaceItems[0].price,
+      price: `₹${(parseInt(marketplaceItems[0].price.replace('$', '').replace(',', '')) * 83).toLocaleString()}`,
       onSale: marketplaceItems[0].status === "available"
     }
   ];

@@ -23,7 +23,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Serenity in Blue",
     description: "An abstract expressionist painting exploring themes of tranquility and introspection through shades of blue and subtle textures.",
     image: "https://images.unsplash.com/photo-1559181567-c3190ca9959b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$2,500",
+    price: "₹207,500",
     type: "original",
     status: "available",
     artist: {
@@ -41,7 +41,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Urban Reflections",
     description: "A contemporary photograph capturing the interplay of light and architecture in an urban landscape, printed on premium archival paper.",
     image: "https://images.unsplash.com/photo-1514924801778-1db0aba75e9b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$850",
+    price: "₹70,550",
     type: "print",
     status: "available",
     artist: {
@@ -59,7 +59,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Digital Dreamscape",
     description: "A surreal digital illustration that blends organic and mechanical elements to create a dreamlike landscape of imagination.",
     image: "https://images.unsplash.com/photo-1604871000636-074fa5117945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$350",
+    price: "₹29,050",
     type: "digital",
     status: "available",
     artist: {
@@ -76,7 +76,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Emergence",
     description: "A sculptural piece exploring themes of growth and transformation through the interplay of bronze and negative space.",
     image: "https://images.unsplash.com/photo-1570021974424-060d74287ec8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$3,800",
+    price: "₹315,400",
     type: "original",
     status: "available",
     artist: {
@@ -94,7 +94,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Golden Hour",
     description: "A vibrant landscape capturing the magical light of sunset over rolling hills, painted with expressive brushwork and warm colors.",
     image: "https://images.unsplash.com/photo-1552825896-9e8aa2ad2b1c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$1,750",
+    price: "₹145,250",
     type: "original",
     status: "available",
     artist: {
@@ -112,7 +112,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Textural Study #7",
     description: "A mixed media piece exploring textures and patterns found in nature, combining handmade paper, natural fibers, and subtle pigments.",
     image: "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$1,200",
+    price: "₹99,600",
     type: "original",
     status: "available",
     artist: {
@@ -130,7 +130,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Chromatic Symphony",
     description: "A bold abstract painting exploring the relationships between colors and forms, creating a dynamic visual rhythm across the canvas.",
     image: "https://images.unsplash.com/photo-1549490349-8643362247b5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$3,200",
+    price: "₹265,600",
     type: "original",
     status: "available",
     artist: {
@@ -148,7 +148,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Veiled Reflections",
     description: "A hauntingly beautiful portrait that uses translucent layers to create a sense of depth and mystery, inviting viewers to look beyond the surface.",
     image: "https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$2,800",
+    price: "₹232,400",
     type: "original",
     status: "available",
     artist: {
@@ -166,7 +166,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Urban Wilderness",
     description: "A series of street photography capturing unexpected moments of nature reclaiming urban spaces, printed as a limited edition collection.",
     image: "https://images.unsplash.com/photo-1569974498991-d3c12a504f95?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$1,100",
+    price: "₹91,300",
     type: "print",
     status: "available",
     artist: {
@@ -184,7 +184,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Quantum Fragments",
     description: "A digital artwork exploring the intersection of quantum physics and visual art, rendered with cutting-edge algorithms and printed on metal.",
     image: "https://images.unsplash.com/photo-1561059488-916d69792237?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$950",
+    price: "₹78,850",
     type: "digital",
     status: "available",
     artist: {
@@ -202,7 +202,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Ethereal Garden",
     description: "A delicate watercolor series depicting imaginary botanical specimens that blend reality and fantasy, exploring the beauty of the natural world.",
     image: "https://images.unsplash.com/photo-1579541637431-4e3cd6f6c9db?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$1,400",
+    price: "₹116,200",
     type: "original",
     status: "available",
     artist: {
@@ -220,7 +220,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Tectonic Forces",
     description: "A monumental ceramic sculpture inspired by geological formations and tectonic plate movements, glazed with earth tones and metallic finishes.",
     image: "https://images.unsplash.com/photo-1554222413-474689f1f1d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$4,500",
+    price: "₹373,500",
     type: "original",
     status: "available",
     artist: {
@@ -238,7 +238,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Nocturnal Reverie",
     description: "A moody nightscape painted with deep blues and purples, capturing the mysterious atmosphere of twilight and the emotions it evokes.",
     image: "https://images.unsplash.com/photo-1557672172-298e090bd0f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$1,850",
+    price: "₹153,550",
     type: "original",
     status: "available",
     artist: {
@@ -256,7 +256,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Kaleidoscopic Dreams",
     description: "A vibrant digital artwork inspired by the patterns and symmetries of kaleidoscopes, exploring the boundaries between chaos and order.",
     image: "https://images.unsplash.com/photo-1574169208507-84376144848b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$650",
+    price: "₹53,950",
     type: "digital",
     status: "available",
     artist: {
@@ -273,7 +273,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Memory Traces",
     description: "A mixed media collage incorporating personal photographs, vintage ephemera, and abstract painting elements to explore themes of memory and time.",
     image: "https://images.unsplash.com/photo-1536924940846-227afb31e2a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$1,600",
+    price: "₹132,800",
     type: "original",
     status: "available",
     artist: {
@@ -291,7 +291,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Architectural Abstractions",
     description: "A series of minimalist black and white photographs exploring the geometric patterns and forms found in modern architecture.",
     image: "https://images.unsplash.com/photo-1555353540-64580b51c258?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$900",
+    price: "₹74,700",
     type: "print",
     status: "available",
     artist: {
@@ -309,7 +309,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Cybernetic Landscape",
     description: "A futuristic digital artwork exploring the intersection of technology and nature, rendered in neon colors and geometric patterns.",
     image: "https://images.unsplash.com/photo-1633677560624-11b441d77d6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$750",
+    price: "₹62,250",
     type: "digital",
     status: "available",
     artist: {
@@ -326,7 +326,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Urban Canvas",
     description: "A street art inspired piece capturing the energy and rhythm of city life through bold strokes and vivid colors.",
     image: "https://images.unsplash.com/photo-1523554888454-84137e72c3ce?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$1,800",
+    price: "₹149,400",
     type: "original",
     status: "available",
     artist: {
@@ -344,7 +344,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Monochrome Study",
     description: "A series of minimalist black and white photographs exploring textures and shadows in everyday objects.",
     image: "https://images.unsplash.com/photo-1572883454114-1cf0031ede2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$950",
+    price: "₹78,850",
     type: "print",
     status: "available",
     artist: {
@@ -362,7 +362,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Terra Forma",
     description: "A ceramic sculpture inspired by geological formations and ancient earthworks, glazed in earth tones and metallic accents.",
     image: "https://images.unsplash.com/photo-1565378435245-4449e9db2b30?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$2,400",
+    price: "₹199,200",
     type: "original",
     status: "available",
     artist: {
@@ -380,7 +380,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Quantum Entanglement",
     description: "An abstract digital artwork visualizing quantum physics concepts through fractal patterns and vibrant color interactions.",
     image: "https://images.unsplash.com/photo-1574169208507-84376144848b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$580",
+    price: "₹48,140",
     type: "digital",
     status: "available",
     artist: {
@@ -397,7 +397,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Coastal Memories",
     description: "A series of impressionistic watercolors capturing the light and atmosphere of coastal landscapes at different times of day.",
     image: "https://images.unsplash.com/photo-1548516173-3cabfa4607e9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$1,200",
+    price: "₹99,600",
     type: "original",
     status: "available",
     artist: {
@@ -415,7 +415,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Industrial Evolution",
     description: "A large-scale sculpture constructed from reclaimed industrial materials, commenting on the relationship between humanity and technology.",
     image: "https://images.unsplash.com/photo-1575303093927-627aeb3dae0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$3,800",
+    price: "₹315,400",
     type: "original",
     status: "available",
     artist: {
@@ -433,7 +433,7 @@ export const marketplaceItems: MarketplaceItem[] = [
     title: "Dreamscape Portal",
     description: "A surreal digital collage blending photography and digital painting to create a portal to imaginary worlds and states of consciousness.",
     image: "https://images.unsplash.com/photo-1604871000636-074fa5117945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80",
-    price: "$690",
+    price: "₹57,270",
     type: "digital",
     status: "available",
     artist: {

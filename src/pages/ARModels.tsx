@@ -18,6 +18,7 @@ const ARModels = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedModel, setSelectedModel] = useState<ARModel | null>(null);
   const [isModelLoading, setIsModelLoading] = useState(false);
+  const [showZeusStatue, setShowZeusStatue] = useState(false);
   
   // Categories
   const categories = [
@@ -76,6 +77,50 @@ const ARModels = () => {
             <p className="text-muted-foreground max-w-2xl">
               Explore our collection of 3D models that you can view in augmented reality.
               Place these virtual sculptures in your space and experience art in a new dimension.
+            </p>
+          </div>
+        </div>
+        
+        {/* Zeus Statue */}
+        <div className="mb-12">
+          <div className="flex items-center mb-4">
+            <Star className="mr-2 h-5 w-5 text-yellow-500" />
+            <h2 className="text-2xl font-semibold">Featured Model: Zeus Statue</h2>
+          </div>
+          
+          <div className="rounded-lg overflow-hidden mb-6">
+            <iframe 
+              title="Zeus Statue" 
+              frameBorder="0" 
+              allowFullScreen 
+              allow="autoplay; fullscreen; xr-spatial-tracking" 
+              width="100%" 
+              height="480" 
+              src="https://sketchfab.com/models/19dbff643b3b466b9fcf2136ed7f8655/embed?autospin=1&preload=1&transparent=1"
+            ></iframe>
+            <p className="text-sm p-3 bg-white dark:bg-gray-800">
+              <a 
+                href="https://sketchfab.com/3d-models/zeus-statue-19dbff643b3b466b9fcf2136ed7f8655" 
+                target="_blank" 
+                rel="nofollow"
+                className="font-bold text-primary"
+              >
+                Zeus Statue
+              </a> by <a 
+                href="https://sketchfab.com/Katalina07" 
+                target="_blank" 
+                rel="nofollow"
+                className="font-bold text-primary"
+              >
+                Katalina
+              </a> on <a 
+                href="https://sketchfab.com" 
+                target="_blank" 
+                rel="nofollow"
+                className="font-bold text-primary"
+              >
+                Sketchfab
+              </a>
             </p>
           </div>
         </div>
@@ -245,6 +290,45 @@ const ARModels = () => {
                 </p>
               </div>
             )}
+          </div>
+        </div>
+        
+        <div className="mt-12">
+          <h2 className="text-2xl font-semibold mb-4">Painting Collection</h2>
+          <div className="rounded-lg overflow-hidden mb-6">
+            <iframe 
+              width="100%" 
+              height="480" 
+              src="https://sketchfab.com/playlists/embed?collection=b936f297790e4eee89dea3ede06ad7b5&autostart=0"
+              title="Painting on canvas"
+              frameBorder="0"
+              allowFullScreen
+              allow="autoplay; fullscreen; xr-spatial-tracking"
+            ></iframe>
+            <p className="text-sm p-3 bg-white dark:bg-gray-800">
+              <a 
+                href="https://sketchfab.com/EmanuelSterpMoga/collections/painting-on-canvas-b936f297790e4eee89dea3ede06ad7b5" 
+                target="_blank" 
+                rel="nofollow" 
+                className="font-bold text-primary"
+              >
+                Painting on canvas
+              </a> by <a 
+                href="https://sketchfab.com/EmanuelSterpMoga" 
+                target="_blank" 
+                rel="nofollow"
+                className="font-bold text-primary"
+              >
+                Emanuel Sterp Moga
+              </a> on <a 
+                href="https://sketchfab.com?utm_source=website&utm_medium=embed&utm_campaign=share-popup" 
+                target="_blank" 
+                rel="nofollow"
+                className="font-bold text-primary"
+              >
+                Sketchfab
+              </a>
+            </p>
           </div>
         </div>
       </div>
