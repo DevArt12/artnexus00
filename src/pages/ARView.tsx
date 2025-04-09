@@ -870,3 +870,22 @@ const ARView = () => {
                 <Tabs defaultValue="ar">
                   <TabsList className="w-full mb-4 md:mb-6">
                     <TabsTrigger value="ar" className="flex-1">
+                      AR View
+                    </TabsTrigger>
+                    <TabsTrigger value="3d" className="flex-1">
+                      3D View
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <Footer />
+    </div>
+  );
+};
+
+export default ARView;
