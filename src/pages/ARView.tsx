@@ -876,6 +876,12 @@ const ARView = () => {
                       3D View
                     </TabsTrigger>
                   </TabsList>
+                  <TabsContent value="ar">
+                    {/* AR View Content */}
+                  </TabsContent>
+                  <TabsContent value="3d">
+                    {/* 3D View Content */}
+                  </TabsContent>
                 </Tabs>
               </div>
             </div>
